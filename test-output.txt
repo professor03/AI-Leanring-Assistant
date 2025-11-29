@@ -1,0 +1,78 @@
+🧪 Starting Presentation Generation Test...
+📝 Params: {
+  topic: 'The Future of Quantum Computing',
+  audience: 'investors',
+  vibe: 'tech',
+  duration: 3
+}
+Generating Outline...
+Generating 2 slides...
+Failed to generate slide 0: ZodError: [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "content",
+      "title"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+    at generateSlide (C:\Users\user\Desktop\aistudent\src\lib\presentation-generator.ts:111:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Promise.all (index 0)
+    at generatePresentation (C:\Users\user\Desktop\aistudent\src\lib\presentation-generator.ts:142:20)
+    at run (C:\Users\user\Desktop\aistudent\src\scripts\test-generation.ts:16:22)
+Failed to generate slide 1: ZodError: [
+  {
+    "expected": "string",
+    "code": "invalid_type",
+    "path": [
+      "content",
+      "title"
+    ],
+    "message": "Invalid input: expected string, received undefined"
+  }
+]
+    at generateSlide (C:\Users\user\Desktop\aistudent\src\lib\presentation-generator.ts:111:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Promise.all (index 1)
+    at generatePresentation (C:\Users\user\Desktop\aistudent\src\lib\presentation-generator.ts:142:20)
+    at run (C:\Users\user\Desktop\aistudent\src\scripts\test-generation.ts:16:22)
+
+✅ Generation Successful!
+-----------------------------------
+Title: The Future of Quantum Computing
+Slides: 2
+Theme: tech
+-----------------------------------
+
+[Slide 1] Unlocking Tomorrow: Why Quantum Is the Next Frontier (bullet-points)
+❌ FAILED: [
+  'Error: [\n' +
+    '  {\n' +
+    '    "expected": "string",\n' +
+    '    "code": "invalid_type",\n' +
+    '    "path": [\n' +
+    '      "content",\n' +
+    '      "title"\n' +
+    '    ],\n' +
+    '    "message": "Invalid input: expected string, received undefined"\n' +
+    '  }\n' +
+    ']'
+]
+
+[Slide 2] Quantum Leap: The Investment Imperative (bullet-points)
+❌ FAILED: [
+  'Error: [\n' +
+    '  {\n' +
+    '    "expected": "string",\n' +
+    '    "code": "invalid_type",\n' +
+    '    "path": [\n' +
+    '      "content",\n' +
+    '      "title"\n' +
+    '    ],\n' +
+    '    "message": "Invalid input: expected string, received undefined"\n' +
+    '  }\n' +
+    ']'
+]
