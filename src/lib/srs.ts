@@ -1,4 +1,4 @@
-import { KnowledgeAtom } from '../types/memory';
+import type { KnowledgeAtom } from '../types/memory';
 
 /**
  * SuperMemo-2 (SM-2) Algorithm Implementation

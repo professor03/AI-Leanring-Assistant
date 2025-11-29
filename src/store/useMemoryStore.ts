@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { KnowledgeAtom, MemoryStats } from '../types/memory';
+import type { KnowledgeAtom, MemoryStats } from '../types/memory';
 
 interface MemoryState {
     atoms: KnowledgeAtom[];

@@ -1,5 +1,5 @@
 ﻿import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
 import clsx from 'clsx';
 
@@ -51,6 +51,13 @@ const TopNav = () => {
           >
             <p className="text-[0.65rem] uppercase tracking-[0.3em] text-gray-500 pointer-events-none">AI 大學生學習助理</p>
             <h1 className="text-2xl font-semibold text-text-dark hover:text-primary transition-colors pointer-events-none">AI Learning Assistant</h1>
+          </div>
+          {/* New navigation items for desktop, placed next to the logo */}
+          <div className="hidden md:flex items-center gap-4 ml-8">
+            <NavLink to="/" icon="🏠" label="Dashboard" />
+            <NavLink to="/memory" icon="🧠" label="Memory Bank" />
+            <NavLink to="/galaxy" icon="🌌" label="Galaxy" />
+            <NavLink to="/notes" icon="📝" label="Notes" />
           </div>
           <div className="flex items-center gap-3 relative" ref={menuRef}>
             <div className="glass-pill text-xs hidden sm:block">Inspired by Apple design</div>
@@ -169,6 +176,26 @@ const TopNav = () => {
     </>
   );
 };
+
+function NavLink({ to, icon, label }: { to: string; icon: string; label: string }) {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <Link
+      to={to}
+      className={clsx(
+        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+        isActive
+          ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20"
+          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+      )}
+    >
+      <span className="text-lg">{icon}</span>
+      <span>{label}</span>
+    </Link>
+  );
+}
 
 export default TopNav;
 

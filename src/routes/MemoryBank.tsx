@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useMemoryStore } from '../../store/useMemoryStore';
-import { KnowledgeAtom } from '../../types/memory';
-import Card from '../ui/Card';
+import { useMemoryStore } from '../store/useMemoryStore';
+import type { KnowledgeAtom } from '../types/memory';
+import Card from '../components/ui/Card';
 import { motion } from 'framer-motion';
 
 export default function MemoryDashboard() {
@@ -9,7 +9,7 @@ export default function MemoryDashboard() {
     const stats = getStats();
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredAtoms = atoms.filter(atom =>
+    const filteredAtoms: KnowledgeAtom[] = atoms.filter(atom =>
         atom.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
         atom.definition.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -142,8 +142,8 @@ function MasteryBar({ level }: { level: number }) {
                 <div
                     key={i}
                     className={`w-2 h-6 rounded-sm ${i < level
-                            ? 'bg-gradient-to-t from-blue-600 to-cyan-400'
-                            : 'bg-gray-700'
+                        ? 'bg-gradient-to-t from-blue-600 to-cyan-400'
+                        : 'bg-gray-700'
                         }`}
                 />
             ))}

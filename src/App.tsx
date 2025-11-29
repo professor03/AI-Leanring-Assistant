@@ -1,6 +1,7 @@
 ﻿import { Route, Routes } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './routes/Dashboard';
+import MemoryDashboard from './routes/MemoryBank';
 import Notes from './routes/Notes';
 import Quiz from './routes/Quiz';
 import SpacedReview from './routes/SpacedReview';
@@ -23,6 +24,7 @@ function App() {
       <AppLayout isChatOpen={isChatOpen}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/memory" element={<MemoryDashboard />} />
           <Route path="/notes/:id" element={<Notes />} />
           <Route path="/quiz/:id" element={<Quiz />} />
           <Route path="/review" element={<SpacedReview />} />
