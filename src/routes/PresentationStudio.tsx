@@ -64,6 +64,18 @@ const CursorArrowRaysIcon = () => (
     </svg>
 );
 
+const Bars3Icon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+);
+
+const XMarkIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+);
+
 export default function PresentationStudio() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -75,6 +87,7 @@ export default function PresentationStudio() {
     const [isEditing, setIsEditing] = useState(false);
     const [isDesignMode, setIsDesignMode] = useState(false);
     const [isNotesOpen, setIsNotesOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [generationProgress, setGenerationProgress] = useState(0);
     const [editingImage, setEditingImage] = useState<{ url: string; prompt?: string } | null>(null);
 
@@ -235,31 +248,45 @@ export default function PresentationStudio() {
 
     return (
         <div className="h-screen w-full bg-gray-900 flex flex-col overflow-hidden relative">
-            <div className="bg-gray-800 border-b border-gray-700 flex flex-wrap items-center justify-between px-4 py-2 md:px-6 md:h-16 z-20 shadow-md gap-2">
-                <div className="flex items-center space-x-2 md:space-x-4 flex-1 min-w-0">
-                    <div className="flex items-center space-x-1 mr-1 md:mr-2">
-                        <Button variant="ghost" onClick={() => navigate(-1)} className="text-gray-400 hover:text-white p-1 md:p-2" title="上一頁"><ChevronLeftIcon /></Button>
-                        <Button variant="ghost" onClick={() => navigate(1)} className="text-gray-400 hover:text-white p-1 md:p-2" title="下一頁"><ChevronRightIcon /></Button>
+            {/* Toolbar */}
+            <div className="bg-gray-800 border-b border-gray-700 flex flex-col md:flex-row items-center justify-between px-2 py-2 md:px-6 md:h-16 z-20 shadow-md gap-2 relative">
+                <div className="flex items-center justify-between w-full md:w-auto space-x-2 md:space-x-4">
+                    <div className="flex items-center flex-1 md:flex-none min-w-0">
+                        <div className="flex items-center space-x-1 mr-1 md:mr-2 flex-shrink-0">
+                            <Button variant="ghost" onClick={() => navigate(-1)} className="text-gray-400 hover:text-white p-1 md:p-2" title="上一頁"><ChevronLeftIcon /></Button>
+                            <Button variant="ghost" onClick={() => navigate(1)} className="text-gray-400 hover:text-white p-1 md:p-2" title="下一頁"><ChevronRightIcon /></Button>
+                        </div>
+                        <Button variant="ghost" onClick={() => navigate('/')} className="text-gray-300 hover:text-white hidden md:flex flex-shrink-0"><HomeIcon /></Button>
+                        <span className="text-white font-medium truncate text-sm md:text-base flex-1 md:flex-none md:max-w-xs">{presentation.title}</span>
                     </div>
-                    <Button variant="ghost" onClick={() => navigate('/')} className="text-gray-300 hover:text-white hidden md:flex"><HomeIcon /></Button>
-                    <span className="text-white font-medium truncate max-w-[150px] md:max-w-xs text-sm md:text-base">{presentation.title}</span>
+
+                    {/* Mobile Menu Toggle */}
+                    <Button
+                        variant="ghost"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="md:hidden text-gray-300 hover:text-white p-2"
+                    >
+                        {isMobileMenuOpen ? <XMarkIcon /> : <Bars3Icon />}
+                    </Button>
                 </div>
-                <div className="flex items-center space-x-1 md:space-x-2 overflow-x-auto no-scrollbar">
-                    <Button variant="ghost" onClick={() => setIsNotesOpen(!isNotesOpen)} className={`text-gray-300 hover:text-white p-2 ${isNotesOpen ? 'bg-gray-700' : ''}`} title={isNotesOpen ? "隱藏講者筆記" : "顯示講者筆記"}>
-                        <DocumentTextIcon /><span className="ml-2 hidden lg:inline">筆記</span>
+
+                {/* Action Buttons - Collapsible on Mobile */}
+                <div className={`${isMobileMenuOpen ? 'flex' : 'hidden'} md:flex flex-col md:flex-row items-stretch md:items-center w-full md:w-auto space-y-2 md:space-y-0 md:space-x-2 overflow-x-auto no-scrollbar bg-gray-800 md:bg-transparent p-2 md:p-0 rounded-lg md:rounded-none absolute md:relative top-full left-0 right-0 md:top-auto md:left-auto md:right-auto border-b border-gray-700 md:border-none shadow-xl md:shadow-none z-50`}>
+                    <Button variant="ghost" onClick={() => { setIsNotesOpen(!isNotesOpen); setIsMobileMenuOpen(false); }} className={`text-gray-300 hover:text-white p-2 justify-start md:justify-center ${isNotesOpen ? 'bg-gray-700' : ''}`} title={isNotesOpen ? "隱藏講者筆記" : "顯示講者筆記"}>
+                        <DocumentTextIcon /><span className="ml-2 md:hidden lg:inline">筆記</span>
                     </Button>
-                    <div className="h-4 md:h-6 w-px bg-gray-700 mx-1 md:mx-2" />
-                    <Button variant="secondary" onClick={handleRemix} title="隨機切換版型" className="px-2 md:px-4 text-xs md:text-sm"><SparklesIcon /><span className="hidden md:inline">Remix</span></Button>
-                    <Button variant="secondary" onClick={() => setIsDesignMode(!isDesignMode)} className={`px-2 md:px-4 text-xs md:text-sm ${isDesignMode ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`} title={isDesignMode ? "關閉設計模式" : "開啟設計模式"}>
-                        <CursorArrowRaysIcon /><span className="hidden md:inline">Design</span>
+                    <div className="h-px md:h-6 w-full md:w-px bg-gray-700 mx-0 md:mx-2" />
+                    <Button variant="secondary" onClick={() => { handleRemix(); setIsMobileMenuOpen(false); }} title="隨機切換版型" className="px-2 md:px-4 text-xs md:text-sm justify-start md:justify-center"><SparklesIcon /><span className="ml-2 md:hidden">Remix</span><span className="hidden md:inline">Remix</span></Button>
+                    <Button variant="secondary" onClick={() => { setIsDesignMode(!isDesignMode); setIsMobileMenuOpen(false); }} className={`px-2 md:px-4 text-xs md:text-sm justify-start md:justify-center ${isDesignMode ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}`} title={isDesignMode ? "關閉設計模式" : "開啟設計模式"}>
+                        <CursorArrowRaysIcon /><span className="ml-2 md:hidden">Design</span><span className="hidden md:inline">Design</span>
                     </Button>
-                    <Button variant="secondary" onClick={() => setIsEditing(true)} title="編輯投影片" className="px-2 md:px-4 text-xs md:text-sm"><PencilSquareIcon /><span className="hidden md:inline">編輯</span></Button>
+                    <Button variant="secondary" onClick={() => { setIsEditing(true); setIsMobileMenuOpen(false); }} title="編輯投影片" className="px-2 md:px-4 text-xs md:text-sm justify-start md:justify-center"><PencilSquareIcon /><span className="ml-2 md:hidden">編輯</span><span className="hidden md:inline">編輯</span></Button>
                     <div className="relative group">
-                        <Button variant="primary" onClick={handleExportPPTX} disabled={isExporting} className="px-2 md:px-4 text-xs md:text-sm">
-                            <ArrowDownTrayIcon /><span className="hidden md:inline">{isExporting ? '匯出中...' : 'PPTX'}</span><span className="inline md:hidden">PPTX</span>
+                        <Button variant="primary" onClick={() => { handleExportPPTX(); setIsMobileMenuOpen(false); }} disabled={isExporting} className="w-full md:w-auto px-2 md:px-4 text-xs md:text-sm justify-start md:justify-center">
+                            <ArrowDownTrayIcon /><span className="ml-2 md:hidden">{isExporting ? '匯出中...' : 'PPTX'}</span><span className="hidden md:inline">{isExporting ? '匯出中...' : 'PPTX'}</span><span className="inline md:hidden"></span>
                         </Button>
                     </div>
-                    <Button variant="secondary" onClick={handleExportPDF} disabled={isExporting} className="px-2 md:px-4 text-xs md:text-sm"><span className="hidden md:inline">PDF</span><span className="inline md:hidden">PDF</span></Button>
+                    <Button variant="secondary" onClick={() => { handleExportPDF(); setIsMobileMenuOpen(false); }} disabled={isExporting} className="px-2 md:px-4 text-xs md:text-sm justify-start md:justify-center"><span className="ml-2 md:hidden">PDF</span><span className="hidden md:inline">PDF</span><span className="inline md:hidden"></span></Button>
                 </div>
             </div>
             <div className="flex-1 relative flex items-center justify-center bg-gray-950 p-4 md:p-8 transition-all duration-300 ease-in-out" style={{ marginRight: isNotesOpen ? '20rem' : '0' }}>

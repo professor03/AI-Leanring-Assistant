@@ -39,7 +39,7 @@ export default function KnowledgeGalaxy() {
         const links: GraphLink[] = [];
 
         // Calculate layout for course nodes (stars)
-        const courseRadius = 2000; // Radius for separating galaxies
+        const courseRadius = 4000; // Radius for separating galaxies
 
         notes.forEach((note, index) => {
             // Calculate position for the course node to ensure spacing
@@ -176,7 +176,7 @@ export default function KnowledgeGalaxy() {
                 controls.update();
             }
         }
-    }, [controlMode, graphData]);
+    }, [controlMode]);
 
     return (
         <Card>
