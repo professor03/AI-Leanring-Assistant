@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
+import { useMemoryStore } from '../../store/useMemoryStore';
 import Button from '../ui/Button';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getStockStats } from '../../lib/stockUtils';
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
@@ -23,7 +25,7 @@ const SUGGESTED_QUESTIONS = [
     '我的寵物現在狀態如何？',
     'Knowledge Galaxy 是什麼？',
     '我上傳了哪些筆記？',
-    '系統有哪些功能？',
+    '幫我複習一下投資學',
 ];
 
 const ChatSidebar = ({ isOpen, onToggle }: ChatSidebarProps) => {
@@ -33,7 +35,8 @@ const ChatSidebar = ({ isOpen, onToggle }: ChatSidebarProps) => {
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { notes, studyPlan, researchResults, petLevel, petHealth, petHunger, petXP, selectedPet } = useAppStore();
+    const { notes, studyPlan, researchResults, petLevel, petHealth, petHunger, petXP, selectedPet, openReviewModal } = useAppStore();
+    const { atoms, stocks } = useMemoryStore();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -43,11 +46,38 @@ const ChatSidebar = ({ isOpen, onToggle }: ChatSidebarProps) => {
         scrollToBottom();
     }, [messages, isOpen]);
 
+
+    // ... (imports remain same)
+
     const buildContext = () => {
         let context = '';
 
+        // Calculate Financial Stats
+        const stockList = Object.values(stocks);
+        const stockStats = getStockStats(stockList);
+        const atomValue = atoms.reduce((acc, atom) => acc + (atom.mastery * 1000) + 100, 0);
+        const netWorth = atomValue + stockStats.totalValue;
+
+        // === NEW: Financial Report ===
+        context += '=== 💰 知識銀行財務報表 (Financial Report) ===\n';
+        context += `總淨資產 (Net Worth): $${new Intl.NumberFormat('en-US').format(netWorth)}\n`;
+        context += `股票市值 (Market Cap): $${new Intl.NumberFormat('en-US').format(stockStats.totalValue)}\n`;
+        context += `月收益 (Monthly Yield): +$${new Intl.NumberFormat('en-US').format(stockStats.monthlyReturn)}\n`;
+        context += `持倉數量 (Positions): ${stockStats.totalStocks}\n`;
+
+        if (stockList.length > 0) {
+            context += '持倉詳情:\n';
+            stockList.forEach(stock => {
+                context += `- ${stock.name}: ${stock.totalHoldings} 股, 收益 $${stock.totalEarnings}, 績效 ${stock.performance}%\n`;
+            });
+        } else {
+            context += '(目前無持倉)\n';
+        }
+        context += '---\n\n';
+
         // === NEW: System Features Overview ===
         context += '=== 🌟 系統功能清單 ===\n\n';
+        // ... (rest of the function)
         context += '本系統「AI Student」包含以下核心功能：\n\n';
         context += '1. **筆記上傳與生成** (Upload)\n';
         context += '   - 支援 PDF、PPT、文字檔上傳\n';
@@ -117,6 +147,18 @@ const ChatSidebar = ({ isOpen, onToggle }: ChatSidebarProps) => {
                 }
                 context += '---\n\n';
             });
+        }
+
+        // Add Memory Bank (Atoms) context
+        if (atoms.length > 0) {
+            context += '=== 🧠 知識銀行 (Memory Bank) ===\n';
+            context += `總資產數：${atoms.length} 張卡片\n`;
+            context += '資產列表 (部分)：\n';
+            atoms.slice(0, 20).forEach(atom => {
+                context += `- ${atom.term}: ${atom.definition} (熟練度: ${atom.mastery}/5)\n`;
+            });
+            if (atoms.length > 20) context += `...還有 ${atoms.length - 20} 張卡片\n`;
+            context += '\n---\n\n';
         }
 
         // Add study plan context
@@ -300,6 +342,11 @@ ${textToSend}
    - 簡潔明瞭，像個好朋友
    - 鼓勵正向的語氣
 
+6. 特殊指令（重要）：
+   - 如果用戶想複習某個主題，或你建議用戶複習，請在回答的最後一行加上指令：[REVIEW: 主題關鍵字]
+   - 例如：[REVIEW: 投資學] 或 [REVIEW: 全部]
+   - 只有在用戶明確表達想複習，或你強烈建議複習時才使用。
+
 【格式範本 - 請嚴格照這個格式】
 
 錯誤示範（段落擠在一起）：
@@ -328,6 +375,34 @@ Knowledge Galaxy 是一個 3D 視覺化的「知識網絡」，它就像您大�
             const result = await model.generateContent(prompt);
             const response = await result.response;
             let text = response.text();
+
+            // Check for REVIEW command
+            const reviewMatch = text.match(/\[REVIEW: (.+)\]/);
+            if (reviewMatch) {
+                const topic = reviewMatch[1];
+                // Remove the command from the displayed text
+                text = text.replace(reviewMatch[0], '').trim();
+
+                // Logic to filter atoms
+                let atomsToReview: any[] = [];
+                if (topic === '全部' || topic === 'All') {
+                    atomsToReview = atoms;
+                } else {
+                    atomsToReview = atoms.filter(a =>
+                        a.term.toLowerCase().includes(topic.toLowerCase()) ||
+                        a.definition.toLowerCase().includes(topic.toLowerCase()) ||
+                        (stocks[a.sourceId] && stocks[a.sourceId].name.toLowerCase().includes(topic.toLowerCase()))
+                    );
+                }
+
+                if (atomsToReview.length > 0) {
+                    setTimeout(() => {
+                        openReviewModal(atomsToReview);
+                    }, 1500); // Small delay for effect
+                } else {
+                    text += '\n\n(系統提示：找不到與「' + topic + '」相關的複習卡片)';
+                }
+            }
 
             // Smart post-processing for readable spacing
             text = text

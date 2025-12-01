@@ -54,7 +54,6 @@ const TopNav = () => {
           </div>
           {/* New navigation items for desktop, placed next to the logo */}
           <div className="hidden md:flex items-center gap-4 ml-8">
-            <NavLink to="/" icon="🏠" label="Dashboard" />
             <NavLink to="/memory" icon="🧠" label="Memory Bank" />
             <NavLink to="/galaxy" icon="🌌" label="Galaxy" />
             <NavLink to="/notes" icon="📝" label="Notes" />
@@ -101,6 +100,42 @@ const TopNav = () => {
                     <span className="text-lg">💬</span>
                     {isChatOpen ? '關閉聊天室' : 'AI 聊天室'}
                   </button>
+
+                  <div className="h-px bg-gray-200 my-1"></div>
+
+                  {/* Mobile Navigation Links */}
+                  <button
+                    onClick={() => {
+                      navigate('/memory');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 text-gray-700 transition-colors"
+                  >
+                    <span className="text-lg">🧠</span>
+                    Memory Bank
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate('/galaxy');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 text-gray-700 transition-colors"
+                  >
+                    <span className="text-lg">🌌</span>
+                    Galaxy
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate('/notes');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 text-gray-700 transition-colors"
+                  >
+                    <span className="text-lg">📝</span>
+                    Notes
+                  </button>
+
+                  <div className="h-px bg-gray-200 my-1"></div>
 
                   <button
                     onClick={() => {

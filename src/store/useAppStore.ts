@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { LectureNotes, MaterialType, PetType, QuizQuestion, StudyPlanItem, ResearchResult } from '../types';
+import type { KnowledgeAtom } from '../types/memory';
 
 interface AppState {
   uploadType: MaterialType;
@@ -39,9 +40,17 @@ interface AppState {
   petLevel: number;
   lastFeedTime: number | null; // Timestamp of last feeding
   updatePetStats: (stats: Partial<{ health: number; hunger: number; xp: number; level: number }>) => void;
+  rewardPet: (xpAmount: number, hungerReduction: number) => void;
   gainXP: (amount: number) => void;
   feedPet: () => { success: boolean; message: string; cooldownRemaining?: number };
   resetData: () => void;
+  // Review Modal State
+  reviewModal: {
+    isOpen: boolean;
+    atoms: KnowledgeAtom[];
+  };
+  openReviewModal: (atoms: KnowledgeAtom[]) => void;
+  closeReviewModal: () => void;
 }
 
 // Helper to load from localStorage
@@ -103,6 +112,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleChat: () => set((state) => ({ isChatOpen: !state.isChatOpen })),
   setChatOpen: (isOpen) => set({ isChatOpen: isOpen }),
 
+  // Review Modal
+  reviewModal: {
+    isOpen: false,
+    atoms: [],
+  },
+  openReviewModal: (atoms) => set({ reviewModal: { isOpen: true, atoms } }),
+  closeReviewModal: () => set({ reviewModal: { isOpen: false, atoms: [] } }),
+
   // Pet
   isPetActive: false,
   setPetActive: (active) => set({ isPetActive: active }),
@@ -129,6 +146,37 @@ export const useAppStore = create<AppState>((set, get) => ({
       saveToStorage('ai-student-petHunger', newState.petHunger);
       saveToStorage('ai-student-petXP', newState.petXP);
       saveToStorage('ai-student-petLevel', newState.petLevel);
+      return newState;
+    });
+  },
+  rewardPet: (xpAmount: number, hungerReduction: number) => {
+    set((state) => {
+      const newXP = state.petXP + xpAmount;
+      const newHunger = Math.max(0, state.petHunger - hungerReduction);
+      const nextLevelXP = state.petLevel * 100; // Simple leveling curve
+
+      let newLevel = state.petLevel;
+      let finalXP = newXP;
+      let petMessage = `+${xpAmount} XP 📚`;
+
+      // Check for level up
+      if (newXP >= nextLevelXP) {
+        newLevel = state.petLevel + 1;
+        finalXP = newXP - nextLevelXP; // Carry over excess XP
+        petMessage = `🎉 恭喜！我升級到 Lv.${newLevel} 了！`;
+      }
+
+      const newState = {
+        petXP: finalXP,
+        petLevel: newLevel,
+        petHunger: newHunger,
+        petMessage: petMessage,
+        petMood: 'happy' as const,
+      };
+
+      saveToStorage('ai-student-petXP', newState.petXP);
+      saveToStorage('ai-student-petLevel', newState.petLevel);
+      saveToStorage('ai-student-petHunger', newState.petHunger);
       return newState;
     });
   },

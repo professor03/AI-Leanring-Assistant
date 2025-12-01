@@ -85,7 +85,7 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask }: TodayTasksProps) => {
             <label className="flex flex-col gap-2 text-sm font-medium text-text-dark">
               類型
               <select
-                className="rounded-2xl border border-white/50 bg-white/70 px-4 py-3 text-text-dark focus:border-primary focus:ring-2 focus:ring-secondary/40 backdrop-blur transition"
+                className="rounded-2xl border border-gray-300 bg-white/80 px-4 py-3 text-text-dark focus:border-primary focus:ring-2 focus:ring-secondary/40 backdrop-blur transition"
                 value={form.type}
                 onChange={(event) =>
                   setForm((prev) => ({ ...prev, type: event.target.value as StudentTaskType }))

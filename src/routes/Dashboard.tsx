@@ -4,7 +4,6 @@ import QuickActions from '../components/dashboard/QuickActions';
 import TodayTasks from '../components/dashboard/TodayTasks';
 import WeeklyOverview from '../components/dashboard/WeeklyOverview';
 import CalendarPanel from '../components/dashboard/CalendarPanel';
-import KnowledgeGalaxy from '../components/dashboard/KnowledgeGalaxy';
 import { api } from '../lib/api';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useAppStore } from '../store/useAppStore';
@@ -198,10 +197,6 @@ const Dashboard = () => {
       </div>
       <QuickActions />
 
-      {/* Knowledge Galaxy Section */}
-      <div className="mb-8">
-        <KnowledgeGalaxy />
-      </div>
 
       {/* Weekly Progress */}
       <WeeklyOverview completed={weeklyStats.completed} pending={weeklyStats.pending} />

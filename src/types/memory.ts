@@ -24,6 +24,33 @@ export interface KnowledgeAtom {
 export interface MemoryStats {
     totalAtoms: number;
     atomsDue: number;
-    masteredCount: number; // Mastery >= 4
-    newCount: number;      // Mastery = 0
+    masteredCount: number;
+    newCount: number;
+}
+
+export interface KnowledgeStock {
+    id: string;                    // Stock ID (same as Note ID)
+    name: string;                  // Stock name (Note title)
+    sourceId: string;              // Reference to Note ID
+    icon: string;                  // Stock icon (auto-assigned or custom)
+
+    // Holdings
+    totalHoldings: number;         // Total atoms from this Note
+    masteredHoldings: number;      // Atoms with mastery >= 4
+
+    // Dividends
+    monthlyDividend: number;       // Dividends earned this month
+    totalEarnings: number;         // All-time total earnings
+    lastDividendDate: number;      // Timestamp of last dividend
+
+    // Performance
+    performance: number;           // Average mastery percentage (0-100%)
+    trend: 'up' | 'down' | 'stable'; // Performance trend
+}
+
+export interface StockStats {
+    totalStocks: number;
+    totalValue: number;            // Sum of all totalEarnings
+    topPerformer: KnowledgeStock | null;
+    monthlyReturn: number;         // Sum of all monthlyDividend
 }

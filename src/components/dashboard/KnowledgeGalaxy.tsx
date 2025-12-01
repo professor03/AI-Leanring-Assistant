@@ -178,6 +178,26 @@ export default function KnowledgeGalaxy() {
         }
     }, [controlMode]);
 
+    // Memoize geometries and materials for performance
+    const materials = useMemo(() => ({
+        course: new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.9 }),
+        section: new THREE.MeshPhongMaterial({ color: 0x3b82f6, emissive: 0x1d4ed8, emissiveIntensity: 0.2, shininess: 50 }),
+        term: new THREE.MeshLambertMaterial({ color: 0xa78bfa }),
+        glow: new THREE.SpriteMaterial({
+            map: getGlowTexture,
+            color: 0xffaa00,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        })
+    }), [getGlowTexture]);
+
+    const geometries = useMemo(() => ({
+        course: new THREE.SphereGeometry(8, 32, 32),
+        section: new THREE.SphereGeometry(4, 24, 24),
+        term: new THREE.SphereGeometry(2, 16, 16)
+    }), []);
+
     return (
         <Card>
             <div className="mb-4 flex items-center justify-between">
@@ -227,7 +247,7 @@ export default function KnowledgeGalaxy() {
                 >
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black">
                         <svg className="w-full h-full opacity-60" xmlns="http://www.w3.org/2000/svg">
-                            {[...Array(300)].map((_, i) => {
+                            {[...Array(100)].map((_, i) => {
                                 const size = Math.random() * 1.5;
                                 const x = Math.random() * 100;
                                 const y = Math.random() * 100;
@@ -261,38 +281,20 @@ export default function KnowledgeGalaxy() {
 
                                 if (node.type === 'course') {
                                     size = 8;
-                                    geometry = new THREE.SphereGeometry(size, 32, 32);
-                                    material = new THREE.MeshBasicMaterial({
-                                        color: 0xffaa00,
-                                        transparent: true,
-                                        opacity: 0.9
-                                    });
+                                    geometry = geometries.course;
+                                    material = materials.course;
 
-                                    const spriteMaterial = new THREE.SpriteMaterial({
-                                        map: getGlowTexture,
-                                        color: 0xffaa00,
-                                        transparent: true,
-                                        opacity: 0.6,
-                                        blending: THREE.AdditiveBlending
-                                    });
-                                    const sprite = new THREE.Sprite(spriteMaterial);
+                                    const sprite = new THREE.Sprite(materials.glow);
                                     sprite.scale.set(size * 4, size * 4, 1);
                                     group.add(sprite);
                                 } else if (node.type === 'section') {
                                     size = 4;
-                                    geometry = new THREE.SphereGeometry(size, 24, 24);
-                                    material = new THREE.MeshPhongMaterial({
-                                        color: 0x3b82f6,
-                                        emissive: 0x1d4ed8,
-                                        emissiveIntensity: 0.2,
-                                        shininess: 50
-                                    });
+                                    geometry = geometries.section;
+                                    material = materials.section;
                                 } else {
                                     size = 2;
-                                    geometry = new THREE.SphereGeometry(size, 16, 16);
-                                    material = new THREE.MeshLambertMaterial({
-                                        color: 0xa78bfa,
-                                    });
+                                    geometry = geometries.term;
+                                    material = materials.term;
                                 }
 
                                 const mesh = new THREE.Mesh(geometry, material);
@@ -312,10 +314,6 @@ export default function KnowledgeGalaxy() {
                             nodeLabel={(node: any) => node.name}
                             linkColor={() => 'rgba(100, 200, 255, 0.2)'}
                             linkWidth={0.5}
-                            linkDirectionalParticles={2}
-                            linkDirectionalParticleWidth={2}
-                            linkDirectionalParticleSpeed={0.005}
-                            linkDirectionalParticleColor={() => '#fbbf24'}
                             onNodeClick={(node) => {
                                 if (controlMode === 'orbit') {
                                     handleNodeClick(node);

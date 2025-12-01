@@ -13,7 +13,7 @@ const Input = ({ label, className, id, ...props }: InputProps) => {
       <input
         id={inputId}
         className={clsx(
-          'rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-text-dark placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-secondary/40 backdrop-blur shadow-inner transition-all',
+          'rounded-2xl border border-gray-300 bg-white/80 px-4 py-3 text-text-dark placeholder:text-gray-400 focus:border-primary focus:ring-2 focus:ring-secondary/40 backdrop-blur shadow-inner transition-all',
           className
         )}
         {...props}
