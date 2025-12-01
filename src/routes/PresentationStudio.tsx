@@ -246,6 +246,18 @@ export default function PresentationStudio() {
 
     const currentSlide = presentation.slides[currentSlideIndex];
 
+    if (!currentSlide) {
+        return (
+            <div className="h-screen w-full bg-gray-900 flex items-center justify-center text-white">
+                <div className="text-center">
+                    <h2 className="text-xl font-bold mb-2">簡報載入錯誤</h2>
+                    <p className="text-gray-400 mb-4">找不到投影片內容</p>
+                    <Button onClick={() => setPresentation(null)}>返回重新生成</Button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="h-screen w-full bg-gray-900 flex flex-col overflow-hidden relative">
             {/* Toolbar */}

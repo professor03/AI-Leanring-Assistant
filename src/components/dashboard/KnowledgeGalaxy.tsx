@@ -1,5 +1,5 @@
 import { useMemo, useRef, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ForceGraph3D from 'react-force-graph-3d';
 import { useAppStore } from '../../store/useAppStore';
 import Card from '../ui/Card';
@@ -137,8 +137,32 @@ export default function KnowledgeGalaxy() {
     }, []);
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+    const [dimensions, setDimensions] = useState({
+        width: window.innerWidth > 0 ? window.innerWidth : 800,
+        height: 600
+    });
     const [controlMode, setControlMode] = useState<'orbit' | 'pan'>('orbit');
+    const location = useLocation();
+
+    // Handle focus query param
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const focusId = params.get('focus');
+
+        if (focusId && fgRef.current && graphData.nodes.length > 0) {
+            const targetNode = graphData.nodes.find(n => n.id === focusId);
+            if (targetNode && targetNode.x !== undefined && targetNode.y !== undefined && targetNode.z !== undefined) {
+                const isMobile = window.innerWidth < 768;
+                const distance = isMobile ? 100 : 80;
+
+                fgRef.current.cameraPosition(
+                    { x: targetNode.x, y: targetNode.y, z: targetNode.z + distance }, // Position
+                    { x: targetNode.x, y: targetNode.y, z: targetNode.z }, // Look at
+                    1500 // Transition duration
+                );
+            }
+        }
+    }, [location.search, graphData]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -234,7 +258,7 @@ export default function KnowledgeGalaxy() {
                 </div>
             </div>
 
-            {notes.length === 0 ? (
+            {(!notes || notes.length === 0) ? (
                 <div className="h-96 flex flex-col items-center justify-center text-gray-400 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300">
                     <div className="text-6xl mb-4">🌠</div>
                     <p className="text-lg font-medium">宇宙還是一片虛無...</p>

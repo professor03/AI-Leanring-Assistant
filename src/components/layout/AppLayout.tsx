@@ -20,7 +20,7 @@ const AppLayout = ({ children, isChatOpen = false }: AppLayoutProps) => {
         className={`relative z-10 flex min-h-screen flex-col transition-all duration-300 ease-in-out ${isChatOpen ? 'md:pr-96' : ''}`}
       >
         <TopNav />
-        <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 pt-24 subtle-animate">{children}</main>
+        <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8 pt-36 md:pt-24 subtle-animate">{children}</main>
         <div className="md:hidden">
           <BottomNav />
         </div>

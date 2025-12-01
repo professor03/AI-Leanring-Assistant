@@ -1,4 +1,5 @@
-﻿import { Route, Routes, useLocation } from 'react-router-dom';
+﻿
+import { Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './routes/Dashboard';
@@ -10,6 +11,7 @@ import Upload from './routes/Upload';
 import StudyPlan from './routes/StudyPlan';
 import Research from './routes/Research';
 import PresentationStudio from './routes/PresentationStudio';
+import Vault from './routes/Vault'; // Added this import
 import KnowledgeGalaxy from './components/dashboard/KnowledgeGalaxy';
 import ChatSidebar from './components/chat/ChatSidebar';
 import ReviewCardModal from './components/memory/ReviewCardModal';
@@ -71,7 +73,9 @@ function App() {
             <Route path="/review" element={<PageTransition><SpacedReview /></PageTransition>} />
             <Route path="/upload" element={<PageTransition><Upload /></PageTransition>} />
             <Route path="/study-plan" element={<PageTransition><StudyPlan /></PageTransition>} />
+            <Route path="/vault" element={<PageTransition><Vault /></PageTransition>} />
             <Route path="/research" element={<PageTransition><Research /></PageTransition>} />
+            <Route path="/presentation" element={<PageTransition><PresentationStudio /></PageTransition>} />
             <Route path="/presentation/studio" element={<PageTransition><PresentationStudio /></PageTransition>} />
           </Routes>
         </AnimatePresence>
@@ -90,4 +94,3 @@ function App() {
 }
 
 export default App;
-

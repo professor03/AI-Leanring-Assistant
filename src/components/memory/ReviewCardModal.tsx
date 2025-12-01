@@ -48,15 +48,6 @@ export default function ReviewCardModal({ atoms, onReviewComplete, onClose }: Re
         }, 600);
     };
 
-    const handleSkip = () => {
-        if (currentIndex < atoms.length - 1) {
-            setCurrentIndex(currentIndex + 1);
-            setIsFlipped(false);
-            setShowResult(false);
-        } else {
-            onClose();
-        }
-    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">

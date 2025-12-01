@@ -55,6 +55,30 @@ const UploadForm = () => {
 
       addNote(note);
       gainXP(15); // Reward for uploading notes
+
+      // Add to Vault
+      // Add to Vault
+      if (file) {
+        // Dynamic import to avoid circular dependencies if any, but ensure it's awaited
+        const { useVaultStore } = await import('../../store/useVaultStore');
+
+        // Create file object
+        const newFile = {
+          id: crypto.randomUUID(),
+          name: file.name,
+          type: (file.type === 'application/pdf' ? 'pdf' : 'text') as 'pdf' | 'text',
+          size: file.size,
+          uploadDate: Date.now(),
+          noteId: note.id
+        };
+
+        // Add to store immediately
+        useVaultStore.getState().addFile(newFile);
+
+        // Force a small delay to ensure state persistence catches up before navigation
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
       setGenerationProgress(100);
       setStatus('完成！正在跳轉...');
 

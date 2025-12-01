@@ -61,3 +61,6 @@ src/__tests__/
 
 # Antigravity artifacts (agent workspace)
 .gemini/
+
+# Local Netlify folder
+.netlify
