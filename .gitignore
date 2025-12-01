@@ -45,3 +45,19 @@ Thumbs.db
 # API Keys (if any)
 *.key
 *.pem
+
+# Documentation (exclude all .md files)
+*.md
+
+# Test and Debug files
+src/scripts/test-*.ts
+src/scripts/test-*.js
+src/components/debug/
+src/__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Antigravity artifacts (agent workspace)
+.gemini/
