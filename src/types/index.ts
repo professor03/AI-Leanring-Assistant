@@ -93,7 +93,7 @@ export interface ResearchResult {
   imagePrompt?: string;
 }
 
-export type PetType = 'cat' | 'dog' | 'otter' | 'alpaca' | 'capybara';
+export type PetType = 'cat' | 'dog' | 'otter' | 'alpaca' | 'capybara' | 'rabbit';
 
 export interface CalendarEvent {
   id: string;

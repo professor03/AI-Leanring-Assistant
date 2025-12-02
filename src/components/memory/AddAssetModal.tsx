@@ -112,19 +112,15 @@ export default function AddAssetModal({ stockId, stockName, onClose }: AddAssetM
             const noteContent = `${sourceNote.summary}\n\n${sourceNote.sections.map(s => `${s.title}\n${s.content}`).join('\n\n')}`;
             const difficultyDesc = getDifficultyPrompt(difficulty);
 
-            // Add timestamp and random seed to ensure different generations
-            const timestamp = Date.now();
-            const randomSeed = Math.floor(Math.random() * 10000);
-
-            const prompt = `【批次 #${randomSeed}】根據以下教材內容，生成 ${cardCount} 張完全不同的 Anki 學習卡片。
+            const prompt = `【批次 #${Math.floor(Math.random() * 10000)}】根據以下教材內容，生成 ${cardCount} 張完全不同的 Anki 學習卡片。
 
 教材：${sourceNote.courseName || '課程筆記'}
 
 內容：
 ${noteContent}
 
-重要指示：
-- 這是第 ${randomSeed} 批生成，請確保與之前的批次完全不同
+重要指示:
+- 這是第 ${Math.floor(Math.random() * 10000)} 批生成，請確保與之前的批次完全不同
 - 每次生成時，請選擇教材中不同的章節和角度
 - 優先選擇尚未被提取的知識點
 - 難度等級：${difficultyDesc}
