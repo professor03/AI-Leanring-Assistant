@@ -88,6 +88,7 @@ const buildSmartSchedule = (input: {
 };
 
 import { useMemoryStore } from '../store/useMemoryStore';
+import DailyProgress from '../components/dashboard/DailyProgress';
 import MissionCard from '../components/dashboard/MissionCard';
 import LearningAnalytics from '../components/dashboard/LearningAnalytics';
 
@@ -129,6 +130,25 @@ const Dashboard = () => {
         (task) => task.id !== groupId && task.relatedTaskId !== groupId && task.id !== id,
       );
     });
+  };
+
+  const handleToggleTask = (id: string) => {
+    setTasks((prev) =>
+      prev.map((task) => {
+        if (task.id === id) {
+          const newStatus = task.status === 'done' ? 'pending' : 'done';
+
+          // Trigger pet reward if completing task
+          if (newStatus === 'done') {
+            useAppStore.getState().rewardPet(10, 5); // 10 XP, -5 Hunger
+            useAppStore.getState().triggerPet();
+          }
+
+          return { ...task, status: newStatus };
+        }
+        return task;
+      })
+    );
   };
 
   useEffect(() => {
@@ -194,6 +214,11 @@ const Dashboard = () => {
 
       {activeTab === 'daily' ? (
         <>
+          {/* 0. Daily Progress & AI Goals */}
+          <div className="mb-6">
+            <DailyProgress />
+          </div>
+
           {/* 1. Daily Missions (Top Priority) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {dailyMissions.map(mission => (
@@ -203,7 +228,12 @@ const Dashboard = () => {
 
           {/* 2. Today Tasks & Coaching */}
           <div className="grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
-            <TodayTasks tasks={tasks} onAddTask={handleAddTask} onDeleteTask={handleDeleteTask} />
+            <TodayTasks
+              tasks={tasks}
+              onAddTask={handleAddTask}
+              onDeleteTask={handleDeleteTask}
+              onToggleTask={handleToggleTask}
+            />
 
             <div className="space-y-6">
               {/* Simplified Coaching / Encouragement */}

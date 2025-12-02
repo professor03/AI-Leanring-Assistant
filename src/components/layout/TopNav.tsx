@@ -1,6 +1,9 @@
 ﻿import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
+import { useMemoryStore } from '../../store/useMemoryStore';
+import { useVaultStore } from '../../store/useVaultStore';
+import { useTimerStore } from '../../store/useTimerStore';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from '../search/GlobalSearch';
@@ -38,6 +41,9 @@ const TopNav = () => {
 
   const handleResetData = () => {
     resetData();
+    useMemoryStore.getState().resetMemory();
+    useVaultStore.getState().resetVault();
+    useTimerStore.getState().resetGlobalTimer();
     setIsResetConfirmOpen(false);
     setIsMobileMenuOpen(false);
     navigate('/');
@@ -61,6 +67,7 @@ const TopNav = () => {
         "fixed top-0 left-0 z-50 w-full border-b border-white/40 bg-white/80 backdrop-blur-2xl shadow-sm transition-all duration-300 ease-in-out",
         isChatOpen ? "pr-0 md:pr-96" : ""
       )}>
+        {/* Main Navigation Row */}
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
 
           {/* Left Section: App Switcher & Logo */}
@@ -128,7 +135,7 @@ const TopNav = () => {
             </div>
           </div>
 
-          {/* Center Section: Search Bar - Desktop */}
+          {/* Center Section: Search Bar - Desktop Only */}
           <div className="hidden md:block flex-1">
             <GlobalSearch />
           </div>
@@ -234,6 +241,11 @@ const TopNav = () => {
               )}
             </AnimatePresence>
           </div>
+        </div>
+
+        {/* Mobile Search Bar - Second Row */}
+        <div className="md:hidden px-4 pb-3">
+          <GlobalSearch />
         </div>
       </header>
 

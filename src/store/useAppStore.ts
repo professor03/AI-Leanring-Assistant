@@ -37,6 +37,13 @@ interface AppState {
   mood: string;
   setMood: (mood: string) => void;
 
+  // Study Time Tracking
+  studyTime: {
+    today: number; // minutes
+    history: Record<string, number>; // date -> minutes
+  };
+  updateStudyTime: (minutes: number) => void;
+
   // Symbiotic Core
   petHealth: number; // 0-100
   petHunger: number; // 0-100
@@ -75,6 +82,9 @@ const saveToStorage = <T,>(key: string, value: T): void => {
     console.error('Failed to save to localStorage:', error);
   }
 };
+
+// Helper for date string
+const getTodayString = () => new Date().toISOString().split('T')[0];
 
 export const useAppStore = create<AppState>((set, get) => ({
   uploadType: 'ppt',
@@ -137,6 +147,31 @@ export const useAppStore = create<AppState>((set, get) => ({
   setMood: (mood) => {
     set({ mood });
     saveToStorage('ai-student-mood', mood);
+  },
+
+  // Study Time
+  studyTime: loadFromStorage('ai-student-studyTime', { today: 0, history: {} }),
+  updateStudyTime: (minutes) => {
+    set((state) => {
+      const today = getTodayString();
+      const currentHistory = state.studyTime.history || {};
+
+      // Check if we need to reset for a new day (if last record isn't today)
+      // Actually, logic is simpler: just add to today's count if date matches, else reset
+      // But we rely on history keys.
+
+      const newTodayTime = (state.studyTime.today || 0) + minutes;
+      const newHistory = { ...currentHistory, [today]: newTodayTime };
+
+      const newState = {
+        studyTime: {
+          today: newTodayTime,
+          history: newHistory
+        }
+      };
+      saveToStorage('ai-student-studyTime', newState.studyTime);
+      return newState;
+    });
   },
 
   // Symbiotic Core
@@ -272,15 +307,25 @@ export const useAppStore = create<AppState>((set, get) => ({
       petMessage: null
     });
 
-    // Clear localStorage
-    localStorage.removeItem('ai-student-notes');
-    localStorage.removeItem('ai-student-quizzes');
-    localStorage.removeItem('ai-student-research');
-    localStorage.removeItem('ai-student-studyPlan');
-    localStorage.removeItem('ai-student-petHealth');
-    localStorage.removeItem('ai-student-petHunger');
-    localStorage.removeItem('ai-student-petXP');
     localStorage.removeItem('ai-student-petLevel');
     localStorage.removeItem('ai-student-lastFeedTime');
+    localStorage.removeItem('ai-student-studyTime');
+    localStorage.removeItem('ai-student-mood');
+
+    set({
+      notes: [],
+      quizzes: {},
+      researchResults: {},
+      studyPlan: [],
+      petHealth: 100,
+      petHunger: 0,
+      petXP: 0,
+      petLevel: 1,
+      lastFeedTime: null,
+      petMood: 'idle',
+      petMessage: null,
+      studyTime: { today: 0, history: {} },
+      mood: '平靜'
+    });
   }
 }));

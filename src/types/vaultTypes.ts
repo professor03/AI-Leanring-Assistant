@@ -15,4 +15,5 @@ export interface VaultState {
     deleteFile: (id: string) => void;
     updateFile: (id: string, updates: Partial<VaultFile>) => void;
     getFilesByType: (type: string) => VaultFile[];
+    resetVault: () => void;
 }

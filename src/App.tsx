@@ -22,6 +22,8 @@ import { calculateReview } from './lib/srs';
 import { calculateDividend } from './lib/stockUtils';
 
 import { usePetSystem } from './hooks/usePetSystem';
+import { useStudyTimer } from './hooks/useStudyTimer';
+import { useGlobalTimer } from './hooks/useGlobalTimer';
 
 // Page Transition Wrapper
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
@@ -38,6 +40,8 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => (
 
 function App() {
   usePetSystem();
+  useStudyTimer(); // Activate study timer
+  useGlobalTimer(); // Activate global pomodoro timer
   const { isChatOpen, setChatOpen, reviewModal, closeReviewModal, rewardPet } = useAppStore();
   const { atoms, updateAtom, recordDividend } = useMemoryStore();
   const location = useLocation();
@@ -66,7 +70,9 @@ function App() {
             <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
             <Route path="/memory" element={<PageTransition><MemoryDashboard /></PageTransition>} />
             <Route path="/notes" element={<PageTransition><Notes /></PageTransition>} />
+            <Route path="/notes/:id" element={<PageTransition><Notes /></PageTransition>} />
             <Route path="/quiz" element={<PageTransition><Quiz /></PageTransition>} />
+            <Route path="/quiz/:id" element={<PageTransition><Quiz /></PageTransition>} />
             <Route path="/review" element={<PageTransition><SpacedReview /></PageTransition>} />
             <Route path="/galaxy" element={<PageTransition><KnowledgeGalaxy /></PageTransition>} />
             <Route path="/upload" element={<PageTransition><Upload /></PageTransition>} />

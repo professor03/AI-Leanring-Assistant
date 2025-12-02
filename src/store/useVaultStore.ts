@@ -25,7 +25,9 @@ export const useVaultStore = create<VaultState>()(
                 const { files } = get();
                 if (type === 'all') return files;
                 return files.filter((f) => f.type === type);
-            }
+            },
+
+            resetVault: () => set({ files: [] })
         }),
         {
             name: 'vault-storage',

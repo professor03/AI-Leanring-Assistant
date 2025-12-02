@@ -1,8 +1,8 @@
 ﻿import { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
 import type { ReviewTask, StudentTaskType, TaskVector } from '../../types';
 import Card from '../ui/Card';
-import Chip from '../ui/Chip';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { STUDENT_TASK_OPTIONS, REVIEW_TYPE_META } from '../../lib/constants';
@@ -17,12 +17,8 @@ interface TodayTasksProps {
     vector: TaskVector;
   }) => void;
   onDeleteTask?: (id: string) => void;
+  onToggleTask?: (id: string) => void;
 }
-
-const statusChip = (status: ReviewTask['status']) =>
-  status === 'done'
-    ? { label: '完成', tone: 'success' as const }
-    : { label: '待完成', tone: 'warning' as const };
 
 const methodLabel = (method?: ReviewTask['method']) => {
   if (method === 'spaced-review') return 'Spaced Review';
@@ -30,7 +26,33 @@ const methodLabel = (method?: ReviewTask['method']) => {
   return null;
 };
 
-const TodayTasks = ({ tasks, onAddTask, onDeleteTask }: TodayTasksProps) => {
+const TaskCheckbox = ({ checked, onClick }: { checked: boolean; onClick: () => void }) => (
+  <motion.button
+    onClick={onClick}
+    whileHover={{ scale: 1.1 }}
+    whileTap={{ scale: 0.95 }}
+    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${checked
+        ? 'bg-green-500 border-green-500'
+        : 'border-gray-300 hover:border-green-400'
+      }`}
+  >
+    {checked && (
+      <motion.svg
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        className="w-3.5 h-3.5 text-white"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={3}
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+      </motion.svg>
+    )}
+  </motion.button>
+);
+
+const TodayTasks = ({ tasks, onAddTask, onDeleteTask, onToggleTask }: TodayTasksProps) => {
   const [form, setForm] = useState({
     title: '',
     dueDate: '',
@@ -38,8 +60,15 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask }: TodayTasksProps) => {
   });
 
   const todayISO = toISODate(new Date());
+
+  // Sort tasks: pending first, then done
   const todaysTasks = useMemo(
-    () => tasks.filter((task) => task.dueDate === todayISO),
+    () => tasks
+      .filter((task) => task.dueDate === todayISO)
+      .sort((a, b) => {
+        if (a.status === b.status) return 0;
+        return a.status === 'pending' ? -1 : 1;
+      }),
     [tasks, todayISO],
   );
 
@@ -105,49 +134,83 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask }: TodayTasksProps) => {
           </div>
         </form>
       )}
-      <div className="space-y-4">
-        {todaysTasks.map((task) => {
-          const meta = REVIEW_TYPE_META[task.type];
-          const method = methodLabel(task.method);
-          return (
-            <div key={task.id} className="relative flex flex-col gap-2 rounded-2xl border border-white/30 p-4 backdrop-blur">
-              {onDeleteTask && (
-                <button
-                  type="button"
-                  className="absolute right-4 top-4 text-sm text-gray-400 hover:text-gray-700"
-                  onClick={() => {
-                    onDeleteTask(task.id);
-                    if (task.status === 'done') {
-                      useAppStore.getState().triggerPet();
-                    }
-                  }}
-                  aria-label="刪除任務"
-                >
-                  ✕
-                </button>
-              )}
-              <div className="flex items-start justify-between pr-8">
-                <p className="font-medium text-text-dark">{task.title}</p>
-                <Chip {...statusChip(task.status)} />
-              </div>
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${meta.colorClass}`}>
-                    {meta.label}
-                  </span>
-                  {method && (
-                    <span className="rounded-full bg-white/40 px-3 py-1 text-xs font-semibold text-slate-700">
-                      {method}
-                    </span>
-                  )}
+      <div className="space-y-3">
+        <AnimatePresence mode='popLayout'>
+          {todaysTasks.map((task) => {
+            const meta = REVIEW_TYPE_META[task.type];
+            const method = methodLabel(task.method);
+            const isDone = task.status === 'done';
+
+            return (
+              <motion.div
+                layout
+                key={task.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className={`group relative flex items-start gap-3 rounded-2xl border p-4 backdrop-blur transition-all duration-300 ${isDone
+                    ? 'bg-gray-50/50 border-transparent opacity-60'
+                    : 'bg-white/40 border-white/40 hover:bg-white/60 hover:shadow-sm'
+                  }`}
+              >
+                {/* Checkbox */}
+                <div className="pt-0.5">
+                  <TaskCheckbox
+                    checked={isDone}
+                    onClick={() => onToggleTask?.(task.id)}
+                  />
                 </div>
-                <span>到期：{task.dueDate}</span>
-              </div>
-            </div>
-          );
-        })}
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className={`font-medium text-text-dark transition-all duration-300 truncate ${isDone ? 'line-through text-gray-400' : ''
+                      }`}>
+                      {task.title}
+                    </p>
+
+                    {/* Delete Button (Visible on Hover) */}
+                    {onDeleteTask && (
+                      <button
+                        type="button"
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all p-1"
+                        onClick={() => {
+                          onDeleteTask(task.id);
+                          if (isDone) {
+                            useAppStore.getState().triggerPet();
+                          }
+                        }}
+                        title="刪除任務"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                    <span className={`rounded-full px-2 py-0.5 font-medium ${meta.colorClass} bg-opacity-20`}>
+                      {meta.label}
+                    </span>
+                    {method && (
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600">
+                        {method}
+                      </span>
+                    )}
+                    <span className="ml-auto font-mono text-[10px] opacity-60">
+                      {task.dueDate}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+
         {todaysTasks.length === 0 && (
-          <p className="text-sm text-gray-500">今天尚未安排任務，先新增一項吧！</p>
+          <div className="text-center py-8 text-gray-400 border-2 border-dashed border-gray-200 rounded-2xl">
+            <p>🎉 今天沒有待辦任務！</p>
+            <p className="text-xs mt-1">享受你的自由時間，或新增一個挑戰吧。</p>
+          </div>
         )}
       </div>
     </Card >

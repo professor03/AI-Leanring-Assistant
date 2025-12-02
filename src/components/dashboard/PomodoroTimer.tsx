@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import type { PomodoroController, PomodoroSessionType } from '../../hooks/usePomodoro';
-import { SESSION_DURATIONS } from '../../hooks/usePomodoro';
+import type { PomodoroController } from '../../hooks/usePomodoro';
+import { SESSION_DURATIONS, type PomodoroSessionType } from '../../store/useTimerStore';
 
 interface PomodoroTimerProps {
   controller: PomodoroController;
@@ -40,9 +40,8 @@ const PomodoroTimer = ({ controller }: PomodoroTimerProps) => {
         <div
           className="relative h-32 w-32 rounded-full bg-white/40 p-1 shadow-glow"
           style={{
-            background: `conic-gradient(#fdd079 ${progress * 360}deg, rgba(255,255,255,0.35) ${
-              progress * 360
-            }deg)`,
+            background: `conic-gradient(#fdd079 ${progress * 360}deg, rgba(255,255,255,0.35) ${progress * 360
+              }deg)`,
           }}
         >
           <div className="flex h-full w-full items-center justify-center rounded-full bg-white/70 text-3xl font-semibold">

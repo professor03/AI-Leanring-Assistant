@@ -39,6 +39,9 @@ export default function SpacedReview() {
       xp: prev.xp + xpGain
     }));
 
+    // Update Mission Progress (Incrementally)
+    updateMissionProgress('review_count', 1);
+
     // Move to next
     if (currentIndex < sessionAtoms.length - 1) {
       setTimeout(() => setCurrentIndex(prev => prev + 1), 300);
@@ -61,7 +64,7 @@ export default function SpacedReview() {
     });
 
     // Update Missions
-    updateMissionProgress('review_count', sessionAtoms.length);
+    // updateMissionProgress('review_count', sessionAtoms.length); // Moved to handleRate for incremental updates
   };
 
   if (sessionAtoms.length === 0 && !isSessionComplete) {
