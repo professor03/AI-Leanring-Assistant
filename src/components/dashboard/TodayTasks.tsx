@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+﻿import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
 import type { ReviewTask, StudentTaskType, TaskVector } from '../../types';
@@ -32,8 +32,8 @@ const TaskCheckbox = ({ checked, onClick }: { checked: boolean; onClick: () => v
     whileHover={{ scale: 1.1 }}
     whileTap={{ scale: 0.95 }}
     className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${checked
-        ? 'bg-green-500 border-green-500'
-        : 'border-gray-300 hover:border-green-400'
+      ? 'bg-green-500 border-green-500'
+      : 'border-gray-300 hover:border-green-400'
       }`}
   >
     {checked && (
@@ -58,6 +58,21 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask, onToggleTask }: TodayTasks
     dueDate: '',
     type: STUDENT_TASK_OPTIONS[0].value,
   });
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const typeRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (typeRef.current && !typeRef.current.contains(event.target as Node)) {
+        setIsTypeOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const todayISO = toISODate(new Date());
 
@@ -92,7 +107,7 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask, onToggleTask }: TodayTasks
       </div>
       {onAddTask && (
         <form
-          className="mb-6 grid gap-4 rounded-2xl border border-white/30 p-4 backdrop-blur-lg"
+          className="mb-6 grid gap-4 rounded-2xl border border-white/30 p-4 backdrop-blur-lg relative z-10"
           onSubmit={handleSubmit}
         >
           <Input
@@ -101,29 +116,51 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask, onToggleTask }: TodayTasks
             value={form.title}
             onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
           />
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 overflow-visible">
             <Input
               label="到期日"
               type="date"
               value={form.dueDate}
               onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))}
             />
-            <label className="flex flex-col gap-2 text-sm font-medium text-text-dark">
-              類型
-              <select
-                className="rounded-2xl border border-gray-300 bg-white/80 px-4 py-3 text-text-dark focus:border-primary focus:ring-2 focus:ring-secondary/40 backdrop-blur transition"
-                value={form.type}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, type: event.target.value as StudentTaskType }))
-                }
+            <div className="relative overflow-visible" style={{ zIndex: isTypeOpen ? 100 : 'auto' }} ref={typeRef}>
+              <label className="text-sm font-medium text-text-dark block mb-2">類型</label>
+              <button
+                type="button"
+                onClick={() => setIsTypeOpen(!isTypeOpen)}
+                className="w-full rounded-2xl border border-gray-300 bg-white/80 px-4 py-3 text-text-dark backdrop-blur transition text-left flex items-center justify-between hover:border-gray-400"
               >
-                {STUDENT_TASK_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <span>
+                  {STUDENT_TASK_OPTIONS.find(opt => opt.value === form.type)?.label || STUDENT_TASK_OPTIONS[0].label}
+                </span>
+                <span className="text-gray-400 text-xs">▼</span>
+              </button>
+              <AnimatePresence>
+                {isTypeOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-xl z-50 overflow-hidden"
+                  >
+                    {STUDENT_TASK_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, type: option.value as StudentTaskType }));
+                          setIsTypeOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${form.type === option.value ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'}`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           <div className="text-xs text-gray-500">
@@ -134,7 +171,7 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask, onToggleTask }: TodayTasks
           </div>
         </form>
       )}
-      <div className="space-y-3">
+      <div className="space-y-3 relative z-0">
         <AnimatePresence mode='popLayout'>
           {todaysTasks.map((task) => {
             const meta = REVIEW_TYPE_META[task.type];
@@ -149,8 +186,8 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask, onToggleTask }: TodayTasks
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 className={`group relative flex items-start gap-3 rounded-2xl border p-4 backdrop-blur transition-all duration-300 ${isDone
-                    ? 'bg-gray-50/50 border-transparent opacity-60'
-                    : 'bg-white/40 border-white/40 hover:bg-white/60 hover:shadow-sm'
+                  ? 'bg-gray-50/50 border-transparent opacity-60'
+                  : 'bg-white/40 border-white/40 hover:bg-white/60 hover:shadow-sm'
                   }`}
               >
                 {/* Checkbox */}

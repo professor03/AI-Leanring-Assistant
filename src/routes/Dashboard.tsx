@@ -90,7 +90,7 @@ const buildSmartSchedule = (input: {
 import { useMemoryStore } from '../store/useMemoryStore';
 import DailyProgress from '../components/dashboard/DailyProgress';
 import MissionCard from '../components/dashboard/MissionCard';
-import LearningAnalytics from '../components/dashboard/LearningAnalytics';
+import AnalyticsView from '../components/dashboard/AnalyticsView';
 
 
 const Dashboard = () => {
@@ -102,12 +102,22 @@ const Dashboard = () => {
   const selectedPet = useAppStore((state) => state.selectedPet);
   const setSelectedPet = useAppStore((state) => state.setSelectedPet);
   const studyPlan = useAppStore((state) => state.studyPlan);
+  const { lastCheckInDate, setCheckInOpen } = useAppStore();
 
   const { dailyMissions, checkDailyReset } = useMemoryStore();
 
   useEffect(() => {
     checkDailyReset();
   }, [checkDailyReset]);
+
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (lastCheckInDate !== today) {
+      // Delay slightly to let animations finish
+      const timer = setTimeout(() => setCheckInOpen(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [lastCheckInDate, setCheckInOpen]);
 
   const handleAddTask = (input: {
     title: string;
@@ -255,7 +265,7 @@ const Dashboard = () => {
           />
         </>
       ) : (
-        <LearningAnalytics />
+        <AnalyticsView />
       )}
     </div>
   );

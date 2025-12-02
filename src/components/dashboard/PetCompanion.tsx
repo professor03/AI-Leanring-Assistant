@@ -385,14 +385,45 @@ const PetCompanion = () => {
         })()}
 
         {/* Quote Bubble (Active Only) */}
-        {(currentQuote || petMessage) && mode === 'active' && (
-          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-48 bg-white/90 backdrop-blur rounded-2xl p-3 shadow-xl border border-white/60 text-center animate-fade-in pointer-events-none">
-            <p className="text-xs font-medium text-gray-700 mb-1">
-              {petMessage ? `"${petMessage}"` : `"${currentQuote?.text}"`}
-            </p>
-            {!petMessage && <p className="text-[10px] text-primary-600">— {currentQuote?.author}</p>}
-          </div>
-        )}
+        {(currentQuote || petMessage) && mode === 'active' && (() => {
+          // Smart Positioning Logic
+          const isTop = currentPos.y < 200; // Increased threshold
+          const { width } = getViewport();
+
+          // Horizontal Clamping
+          // Bubble width is w-48 (12rem = 192px)
+          // Pet center is currentPos.x + 64 (half of 128)
+          const petCenter = currentPos.x + 64;
+          const isLeftEdge = petCenter < 100;
+          const isRightEdge = petCenter > width - 100;
+
+          // Default: Top-Left relative to pet (to avoid Level Badge at Top-Right)
+          let horizontalClass = "right-1/2 translate-x-1/4";
+
+          if (isRightEdge) horizontalClass = "right-full translate-x-4";
+          if (isLeftEdge) horizontalClass = "left-full -translate-x-4";
+
+          // Vertical Positioning
+          // Default above
+          let verticalClass = "bottom-full mb-2";
+
+          if (isTop) {
+            verticalClass = "top-0 mt-0";
+          }
+
+          return (
+            <div className={clsx(
+              "absolute w-48 bg-white/90 backdrop-blur rounded-2xl p-3 shadow-xl border border-white/60 text-center animate-fade-in pointer-events-none z-50",
+              horizontalClass,
+              verticalClass
+            )}>
+              <p className="text-xs font-medium text-gray-700 mb-1">
+                {petMessage ? `"${petMessage}"` : `"${currentQuote?.text}"`}
+              </p>
+              {!petMessage && <p className="text-[10px] text-primary-600">— {currentQuote?.author}</p>}
+            </div>
+          );
+        })()}
 
         {/* Zzz Animation (Docked & Sleep) */}
         {mode === 'docked' && (

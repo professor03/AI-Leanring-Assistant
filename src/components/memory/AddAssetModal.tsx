@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMemoryStore } from '../../store/useMemoryStore';
 import { useAppStore } from '../../store/useAppStore';
 import Button from '../ui/Button';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AddAssetModalProps {
     stockId: string;
@@ -28,6 +29,9 @@ export default function AddAssetModal({ stockId, stockName, onClose }: AddAssetM
 
     // AI Batch Generation State
     const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+    const [isDifficultyOpen, setIsDifficultyOpen] = useState(false);
+    const difficultyRef = useRef<HTMLDivElement>(null);
+
     const [cardCount, setCardCount] = useState(3);
     const [generatedCards, setGeneratedCards] = useState<GeneratedCard[]>([]);
 
@@ -39,6 +43,19 @@ export default function AddAssetModal({ stockId, stockName, onClose }: AddAssetM
         document.body.style.overflow = 'hidden';
         return () => {
             document.body.style.overflow = 'unset';
+        };
+    }, []);
+
+    // Close difficulty dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (difficultyRef.current && !difficultyRef.current.contains(event.target as Node)) {
+                setIsDifficultyOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
 
@@ -85,6 +102,14 @@ export default function AddAssetModal({ stockId, stockName, onClose }: AddAssetM
                 return '中等難度、需要理解和應用、適合進階學習';
             case 'hard':
                 return '深入分析、批判性思考、適合專家級別';
+        }
+    };
+
+    const getDifficultyLabel = (diff: Difficulty) => {
+        switch (diff) {
+            case 'easy': return '🟢 基礎 (Easy)';
+            case 'medium': return '🟡 進階 (Medium)';
+            case 'hard': return '🔴 專家 (Hard)';
         }
     };
 
@@ -195,8 +220,8 @@ ${noteContent}
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4 overflow-hidden">
-            <div className="bg-[#0a0c10] w-full h-[100dvh] md:h-auto md:min-h-[600px] md:max-h-[85vh] md:max-w-2xl md:rounded-2xl border-0 md:border border-slate-800 shadow-2xl flex flex-col overflow-hidden relative">
+        <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4 overflow-hidden pt-20 md:pt-4">
+            <div className="bg-[#0a0c10] w-[95%] md:w-full max-w-lg md:max-w-2xl h-[85dvh] md:h-[85vh] rounded-2xl border border-slate-800 shadow-2xl flex flex-col overflow-hidden relative mx-auto">
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-800 shrink-0">
@@ -239,7 +264,7 @@ ${noteContent}
                 </div>
 
                 {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar pb-32 md:pb-6">
+                <div className="flex-1 overflow-y-auto min-h-0 p-4 md:p-6 custom-scrollbar">
                     {!aiMode ? (
                         <form id="manual-form" onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
@@ -267,24 +292,65 @@ ${noteContent}
                                     placeholder="輸入解釋或答案..."
                                 />
                             </div>
+                            <div className="pt-4 flex gap-3">
+                                <Button
+                                    variant="secondary"
+                                    onClick={onClose}
+                                    type="button"
+                                    className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
+                                >
+                                    取消
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="flex-1 bg-amber-600 hover:bg-amber-500 text-white border-none"
+                                >
+                                    確認鑄造
+                                </Button>
+                            </div>
                         </form>
                     ) : (
                         <div className="space-y-6">
                             {/* AI Controls */}
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
+                                <div className="space-y-2 relative" ref={difficultyRef}>
                                     <label className="text-xs font-mono text-slate-500 uppercase tracking-wider">
                                         難度等級
                                     </label>
-                                    <select
-                                        value={difficulty}
-                                        onChange={(e) => setDifficulty(e.target.value as Difficulty)}
-                                        className="w-full bg-[#111318] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-purple-500/50 outline-none"
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsDifficultyOpen(!isDifficultyOpen)}
+                                        className="w-full bg-[#111318] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:border-purple-500/50 outline-none flex items-center justify-between"
                                     >
-                                        <option value="easy">🟢 基礎 (Easy)</option>
-                                        <option value="medium">🟡 進階 (Medium)</option>
-                                        <option value="hard">🔴 專家 (Hard)</option>
-                                    </select>
+                                        <span>{getDifficultyLabel(difficulty)}</span>
+                                        <span className="text-slate-500 text-xs">▼</span>
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isDifficultyOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="absolute top-full left-0 right-0 mt-1 bg-[#1a1d24] border border-slate-700 rounded-lg shadow-xl z-20 overflow-hidden"
+                                            >
+                                                {(['easy', 'medium', 'hard'] as Difficulty[]).map((diff) => (
+                                                    <button
+                                                        key={diff}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setDifficulty(diff);
+                                                            setIsDifficultyOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-slate-800 transition-colors ${difficulty === diff ? 'text-purple-400 bg-slate-800/50' : 'text-slate-300'}`}
+                                                    >
+                                                        {getDifficultyLabel(diff)}
+                                                    </button>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-mono text-slate-500 uppercase tracking-wider">
@@ -360,66 +426,67 @@ ${noteContent}
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    )}
-                </div>
 
-                {/* Footer - Fixed at bottom on mobile */}
-                <div className="p-4 md:p-6 border-t border-slate-800 bg-[#0a0c10] shrink-0 absolute bottom-0 left-0 right-0 md:relative">
-                    {!aiMode ? (
-                        <div className="flex gap-3">
-                            <Button
-                                variant="secondary"
-                                onClick={onClose}
-                                className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
-                            >
-                                取消
-                            </Button>
-                            <Button
-                                onClick={handleSubmit}
-                                className="flex-1 bg-amber-600 hover:bg-amber-500 text-white border-none"
-                            >
-                                確認鑄造
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="flex gap-3">
-                            {generatedCards.length === 0 ? (
-                                <Button
-                                    onClick={handleAIBatchGenerate}
-                                    disabled={isGenerating}
-                                    className="w-full bg-purple-600 hover:bg-purple-500 text-white border-none h-12 relative overflow-hidden group"
-                                >
-                                    {isGenerating ? (
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            <span>AI 思考中...</span>
+                            <div className="pt-4">
+                                <div className="flex flex-col gap-3">
+                                    {generatedCards.length === 0 ? (
+                                        <div className="flex gap-3">
+                                            <Button
+                                                variant="secondary"
+                                                onClick={onClose}
+                                                className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
+                                            >
+                                                取消
+                                            </Button>
+                                            <Button
+                                                onClick={handleAIBatchGenerate}
+                                                disabled={isGenerating}
+                                                className="flex-[2] bg-purple-600 hover:bg-purple-500 text-white border-none h-12 relative overflow-hidden group"
+                                            >
+                                                {isGenerating ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                        <span>AI 思考中...</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <span>✨ 開始智能生成</span>
+                                                    </div>
+                                                )}
+                                            </Button>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center gap-2">
-                                            <span>✨ 開始智能生成</span>
+                                        <div className="flex flex-col gap-3">
+                                            <Button
+                                                onClick={handleBatchSubmit}
+                                                className="w-full bg-purple-600 hover:bg-purple-500 text-white border-none py-3"
+                                            >
+                                                確認加入 ({generatedCards.length})
+                                            </Button>
+                                            <div className="flex gap-3">
+                                                <Button
+                                                    variant="secondary"
+                                                    onClick={onClose}
+                                                    className="flex-1 border-slate-700 text-slate-300"
+                                                >
+                                                    取消
+                                                </Button>
+                                                <Button
+                                                    variant="secondary"
+                                                    onClick={() => setGeneratedCards([])}
+                                                    className="flex-1 border-slate-700 text-slate-300"
+                                                >
+                                                    重試
+                                                </Button>
+                                            </div>
                                         </div>
                                     )}
-                                </Button>
-                            ) : (
-                                <>
-                                    <Button
-                                        variant="secondary"
-                                        onClick={() => setGeneratedCards([])}
-                                        className="flex-1 border-slate-700 text-slate-300"
-                                    >
-                                        重試
-                                    </Button>
-                                    <Button
-                                        onClick={handleBatchSubmit}
-                                        className="flex-[2] bg-purple-600 hover:bg-purple-500 text-white border-none"
-                                    >
-                                        確認加入 ({generatedCards.length})
-                                    </Button>
-                                </>
-                            )}
+                                </div>
+                            </div>
                         </div>
                     )}
+                    {/* Massive Spacer for mobile scroll - ensure buttons are reachable */}
+                    <div className="h-32 w-full shrink-0 md:hidden" />
                 </div>
             </div>
         </div>

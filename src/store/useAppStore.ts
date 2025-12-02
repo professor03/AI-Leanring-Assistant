@@ -54,6 +54,13 @@ interface AppState {
   rewardPet: (xpAmount: number, hungerReduction: number) => void;
   gainXP: (amount: number) => void;
   feedPet: () => { success: boolean; message: string; cooldownRemaining?: number };
+
+  // Daily Check-in
+  lastCheckInDate: string | null;
+  performCheckIn: () => { success: boolean; message: string; xpAwarded?: number };
+  isCheckInOpen: boolean;
+  setCheckInOpen: (isOpen: boolean) => void;
+
   resetData: () => void;
   // Review Modal State
   reviewModal: {
@@ -292,6 +299,28 @@ export const useAppStore = create<AppState>((set, get) => ({
       message: "餵食成功！寵物獲得 5 XP 並恢復 5 點健康度"
     };
   },
+
+  lastCheckInDate: loadFromStorage('ai-student-lastCheckIn', null),
+  performCheckIn: () => {
+    const today = getTodayString();
+    const state = get();
+    if (state.lastCheckInDate === today) {
+      return { success: false, message: '今天已經簽到過了喔！明天再來吧！' };
+    }
+
+    // Award XP
+    const xpReward = 20;
+    state.rewardPet(xpReward, 0);
+
+    set({ lastCheckInDate: today });
+    saveToStorage('ai-student-lastCheckIn', today);
+
+    return { success: true, message: '簽到成功！獲得 20 XP', xpAwarded: xpReward };
+  },
+
+  isCheckInOpen: false,
+  setCheckInOpen: (isOpen) => set({ isCheckInOpen: isOpen }),
+
   resetData: () => {
     set({
       notes: [],
@@ -311,6 +340,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     localStorage.removeItem('ai-student-lastFeedTime');
     localStorage.removeItem('ai-student-studyTime');
     localStorage.removeItem('ai-student-mood');
+    localStorage.removeItem('ai-student-lastCheckIn');
 
     set({
       notes: [],
@@ -325,7 +355,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       petMood: 'idle',
       petMessage: null,
       studyTime: { today: 0, history: {} },
-      mood: '平靜'
+      mood: '平靜',
+      lastCheckInDate: null,
+      isCheckInOpen: false
     });
   }
 }));

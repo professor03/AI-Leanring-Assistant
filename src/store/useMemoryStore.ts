@@ -31,6 +31,12 @@ interface MemoryState {
     resetMemory: () => void;
 }
 
+const DEFAULT_MISSIONS: DailyMission[] = [
+    { id: 'mission-1', type: 'new_atoms', target: 5, progress: 0, completed: false, rewardXP: 50, title: '探索新知', description: '新增 5 個知識原子', icon: '🌱', date: '' },
+    { id: 'mission-2', type: 'review_count', target: 10, progress: 0, completed: false, rewardXP: 30, title: '溫故知新', description: '完成 10 次複習', icon: '📝', date: '' },
+    { id: 'mission-3', type: 'quiz_score', target: 1, progress: 0, completed: false, rewardXP: 100, title: '挑戰自我', description: '在測驗中獲得 80 分以上', icon: '🏆', date: '' },
+];
+
 export const useMemoryStore = create<MemoryState>()(
     persist(
         (set, get) => ({
@@ -163,11 +169,12 @@ export const useMemoryStore = create<MemoryState>()(
                 const lastReset = localStorage.getItem('last_daily_reset');
                 const today = new Date().toDateString();
 
-                if (lastReset !== today) {
-                    // Reset daily missions
-                    set((state) => ({
-                        dailyMissions: state.dailyMissions.map(m => ({
+                if (lastReset !== today || get().dailyMissions.length === 0) {
+                    // Reset or Initialize daily missions
+                    set(() => ({
+                        dailyMissions: DEFAULT_MISSIONS.map(m => ({
                             ...m,
+                            date: today,
                             progress: 0,
                             completed: false
                         }))
@@ -181,9 +188,10 @@ export const useMemoryStore = create<MemoryState>()(
                     atoms: [],
                     stocks: {},
                     quizHistory: [],
-                    dailyMissions: [],
+                    dailyMissions: DEFAULT_MISSIONS.map(m => ({ ...m, date: new Date().toDateString() })),
                     learningSessions: []
                 });
+                localStorage.setItem('last_daily_reset', new Date().toDateString());
             }
         }),
         {

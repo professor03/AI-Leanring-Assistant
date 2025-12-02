@@ -111,7 +111,9 @@ export const useTimerStore = create<TimerState>()(
                 if (currentDate !== today) {
                     const newHistory = { ...history };
                     if (completedToday > 0) {
-                        newHistory[currentDate] = (newHistory[currentDate] || 0) + completedToday;
+                        // Convert completed pomodoros to minutes (25 min each)
+                        const minutesCompleted = completedToday * 25;
+                        newHistory[currentDate] = (newHistory[currentDate] || 0) + minutesCompleted;
                     }
                     set({
                         currentDate: today,

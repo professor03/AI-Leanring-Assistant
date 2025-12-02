@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
@@ -6,6 +6,7 @@ import Input from '../components/ui/Input';
 import { generateResearch } from '../lib/research';
 import { useAppStore } from '../store/useAppStore';
 import type { ResearchResult } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type SourceType = 'web' | 'note';
 
@@ -21,6 +22,30 @@ const Research = () => {
 
   // Note Selection State
   const [selectedNoteId, setSelectedNoteId] = useState<string>('');
+
+  // Custom dropdown state
+  const [isFieldOpen, setIsFieldOpen] = useState(false);
+  const [isSelectedNoteOpen, setIsSelectedNoteOpen] = useState(false);
+
+  // Refs for click outside detection
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const selectedNoteRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (fieldRef.current && !fieldRef.current.contains(event.target as Node)) {
+        setIsFieldOpen(false);
+      }
+      if (selectedNoteRef.current && !selectedNoteRef.current.contains(event.target as Node)) {
+        setIsSelectedNoteOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,21 +135,55 @@ const Research = () => {
                 onChange={(e) => setTopic(e.target.value)}
                 disabled={isSearching}
               />
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 relative" ref={fieldRef}>
                 <label className="text-sm text-text-normal">領域範疇</label>
-                <select
-                  className="rounded-xl border border-gray-300 px-4 py-2 bg-white"
-                  value={field}
-                  onChange={(e) => setField(e.target.value)}
+                <button
+                  type="button"
+                  onClick={() => setIsFieldOpen(!isFieldOpen)}
                   disabled={isSearching}
+                  className="rounded-xl border border-gray-300 px-4 py-2 bg-white text-left flex items-center justify-between hover:border-gray-400 transition-colors disabled:opacity-50"
                 >
-                  <option value="General">一般</option>
-                  <option value="Computer Science">資訊工程</option>
-                  <option value="Economics">經濟學</option>
-                  <option value="History">歷史</option>
-                  <option value="Medicine">醫學</option>
-                  <option value="Law">法律</option>
-                </select>
+                  <span className="text-gray-700">
+                    {field === 'General' ? '一般' :
+                      field === 'Computer Science' ? '資訊工程' :
+                        field === 'Economics' ? '經濟學' :
+                          field === 'History' ? '歷史' :
+                            field === 'Medicine' ? '醫學' : '法律'}
+                  </span>
+                  <span className="text-gray-400 text-xs">▼</span>
+                </button>
+                <AnimatePresence>
+                  {isFieldOpen && !isSearching && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-xl z-20 overflow-hidden"
+                    >
+                      {[
+                        { value: 'General', label: '一般' },
+                        { value: 'Computer Science', label: '資訊工程' },
+                        { value: 'Economics', label: '經濟學' },
+                        { value: 'History', label: '歷史' },
+                        { value: 'Medicine', label: '醫學' },
+                        { value: 'Law', label: '法律' }
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setField(option.value);
+                            setIsFieldOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${field === option.value ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'}`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               <Button type="submit" disabled={isSearching}>
                 {isSearching ? 'AI 正在搜尋與整理資料...' : '開始蒐集資料'}
@@ -162,21 +221,56 @@ const Research = () => {
         <Card>
           <h2 className="text-xl font-semibold mb-4">從筆記匯入</h2>
           <div className="space-y-6">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 relative" ref={selectedNoteRef}>
               <label className="text-sm text-text-normal">選擇筆記來源</label>
               {notes.length > 0 ? (
-                <select
-                  className="rounded-xl border border-gray-300 px-4 py-2 bg-white"
-                  value={selectedNoteId}
-                  onChange={(e) => setSelectedNoteId(e.target.value)}
-                >
-                  <option value="">-- 請選擇筆記 --</option>
-                  {notes.map(note => (
-                    <option key={note.id} value={note.id}>
-                      {note.courseName || '未命名筆記'} ({new Date().toLocaleDateString()})
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setIsSelectedNoteOpen(!isSelectedNoteOpen)}
+                    className="rounded-xl border border-gray-300 px-4 py-2 bg-white text-left flex items-center justify-between hover:border-gray-400 transition-colors"
+                  >
+                    <span className="text-gray-700">
+                      {selectedNoteId ? (notes.find(n => n.id === selectedNoteId)?.courseName || '未命名筆記') : '-- 請選擇筆記 --'}
+                    </span>
+                    <span className="text-gray-400 text-xs">▼</span>
+                  </button>
+                  <AnimatePresence>
+                    {isSelectedNoteOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-xl z-20 overflow-hidden max-h-60 overflow-y-auto"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedNoteId('');
+                            setIsSelectedNoteOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${!selectedNoteId ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-500'}`}
+                        >
+                          -- 請選擇筆記 --
+                        </button>
+                        {notes.map(note => (
+                          <button
+                            key={note.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedNoteId(note.id);
+                              setIsSelectedNoteOpen(false);
+                            }}
+                            className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedNoteId === note.id ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'}`}
+                          >
+                            {note.courseName || '未命名筆記'} ({new Date().toLocaleDateString()})
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
               ) : (
                 <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-500">
                   尚未有任何筆記。請先到「上傳教材」區新增筆記。

@@ -177,9 +177,9 @@ export default function Quiz() {
           <Button variant="ghost" onClick={() => navigate(-1)}>✕</Button>
 
           {/* Progress Bar */}
-          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-primary-500"
+              className="h-full bg-gradient-to-r from-purple-600 to-blue-600 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.3 }}

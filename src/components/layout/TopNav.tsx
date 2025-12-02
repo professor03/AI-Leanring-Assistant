@@ -8,10 +8,11 @@ import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from '../search/GlobalSearch';
 import WellnessSidebar from './WellnessSidebar';
+import CheckInModal from '../dashboard/CheckInModal';
 
 const TopNav = () => {
   const navigate = useNavigate();
-  const { isChatOpen, toggleChat, setPetActive, resetData } = useAppStore();
+  const { isChatOpen, toggleChat, setPetActive, resetData, setCheckInOpen } = useAppStore();
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
@@ -51,6 +52,7 @@ const TopNav = () => {
   };
 
   const apps = [
+    { name: 'Check-in', icon: '📅', path: '#checkin', color: 'bg-orange-100 text-orange-600' },
     { name: 'Notes', icon: '📝', path: '/notes', color: 'bg-blue-100 text-blue-600' },
     { name: 'Presentation', icon: '📊', path: '/presentation', color: 'bg-purple-100 text-purple-600' },
     { name: 'Galaxy', icon: '🌌', path: '/galaxy', color: 'bg-indigo-100 text-indigo-600' },
@@ -61,6 +63,7 @@ const TopNav = () => {
 
   return (
     <>
+      <CheckInModal />
       <WellnessSidebar isOpen={isWellnessOpen} onClose={() => setIsWellnessOpen(false)} />
 
       <header className={clsx(
@@ -98,8 +101,14 @@ const TopNav = () => {
                       {apps.map((app) => (
                         <Link
                           key={app.name}
-                          to={app.path}
-                          onClick={() => setIsAppMenuOpen(false)}
+                          to={app.path === '#checkin' ? '#' : app.path}
+                          onClick={(e) => {
+                            if (app.path === '#checkin') {
+                              e.preventDefault();
+                              setCheckInOpen(true);
+                            }
+                            setIsAppMenuOpen(false);
+                          }}
                           className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-gray-50 transition-colors group"
                         >
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl mb-2 ${app.color} group-hover:scale-110 transition-transform`}>
@@ -222,8 +231,14 @@ const TopNav = () => {
                         {apps.map((app) => (
                           <Link
                             key={app.name}
-                            to={app.path}
-                            onClick={() => setIsMobileMenuOpen(false)}
+                            to={app.path === '#checkin' ? '#' : app.path}
+                            onClick={(e) => {
+                              if (app.path === '#checkin') {
+                                e.preventDefault();
+                                setCheckInOpen(true);
+                              }
+                              setIsMobileMenuOpen(false);
+                            }}
                             className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-gray-50 transition-colors"
                           >
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg mb-1 ${app.color}`}>

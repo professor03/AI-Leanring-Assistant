@@ -73,6 +73,7 @@ export interface DailyMission {
     completed: boolean;
     rewardXP: number;
     date: string; // YYYY-MM-DD for daily reset
+    title: string;
     description: string;
     icon: string;
 }

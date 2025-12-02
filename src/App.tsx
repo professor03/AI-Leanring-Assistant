@@ -11,7 +11,7 @@ import Upload from './routes/Upload';
 import StudyPlan from './routes/StudyPlan';
 import Research from './routes/Research';
 import PresentationStudio from './routes/PresentationStudio';
-import Vault from './routes/Vault'; // Added this import
+import Vault from './routes/Vault';
 import KnowledgeGalaxy from './components/dashboard/KnowledgeGalaxy';
 import ChatSidebar from './components/chat/ChatSidebar';
 import ReviewCardModal from './components/memory/ReviewCardModal';

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { generateQuiz } from '../lib/ai';
@@ -9,7 +9,7 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { api } from '../lib/api';
 import type { LectureNotes } from '../types';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Notes = () => {
   const { id } = useParams();
@@ -23,6 +23,16 @@ const Notes = () => {
     allowExternal: false,
   });
 
+  // Custom dropdown state
+  const [isCountOpen, setIsCountOpen] = useState(false);
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [isScopeOpen, setIsScopeOpen] = useState(false);
+
+  // Refs for click outside detection
+  const countRef = useRef<HTMLDivElement>(null);
+  const typeRef = useRef<HTMLDivElement>(null);
+  const scopeRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!id) return;
 
@@ -33,6 +43,25 @@ const Notes = () => {
       api.getLectureNotes(id).then(setNotes).catch(() => setNotes(null));
     }
   }, [id, storedNotes]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (countRef.current && !countRef.current.contains(event.target as Node)) {
+        setIsCountOpen(false);
+      }
+      if (typeRef.current && !typeRef.current.contains(event.target as Node)) {
+        setIsTypeOpen(false);
+      }
+      if (scopeRef.current && !scopeRef.current.contains(event.target as Node)) {
+        setIsScopeOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleGenerateQuiz = async () => {
     if (!notes) return;
@@ -134,41 +163,125 @@ const Notes = () => {
       <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/40 shadow-sm space-y-4">
         <h3 className="font-semibold text-lg">生成測驗設定</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
+          <div className="relative" ref={countRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1">題目數量</label>
-            <select
-              className="w-full rounded-xl border-gray-300 bg-white/80"
-              value={quizConfig.count}
-              onChange={(e) => setQuizConfig({ ...quizConfig, count: Number(e.target.value) })}
+            <button
+              type="button"
+              onClick={() => setIsCountOpen(!isCountOpen)}
+              className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2 text-sm text-gray-700 flex items-center justify-between hover:border-gray-400 transition-colors"
             >
-              <option value={3}>3 題</option>
-              <option value={5}>5 題</option>
-              <option value={10}>10 題</option>
-            </select>
+              <span>{quizConfig.count} 題</span>
+              <span className="text-gray-400 text-xs">▼</span>
+            </button>
+            <AnimatePresence>
+              {isCountOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-xl z-20 overflow-hidden"
+                >
+                  {[3, 5, 10].map((count) => (
+                    <button
+                      key={count}
+                      type="button"
+                      onClick={() => {
+                        setQuizConfig({ ...quizConfig, count });
+                        setIsCountOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${quizConfig.count === count ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'}`}
+                    >
+                      {count} 題
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <div>
+          <div className="relative" ref={typeRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1">題型</label>
-            <select
-              className="w-full rounded-xl border-gray-300 bg-white/80"
-              value={quizConfig.type}
-              onChange={(e) => setQuizConfig({ ...quizConfig, type: e.target.value })}
+            <button
+              type="button"
+              onClick={() => setIsTypeOpen(!isTypeOpen)}
+              className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2 text-sm text-gray-700 flex items-center justify-between hover:border-gray-400 transition-colors"
             >
-              <option value="mixed">混合題型</option>
-              <option value="multiple-choice">選擇題</option>
-              <option value="true-false">是非題</option>
-              <option value="short-answer">簡答題</option>
-            </select>
+              <span>
+                {quizConfig.type === 'mixed' ? '混合題型' :
+                  quizConfig.type === 'multiple-choice' ? '選擇題' :
+                    quizConfig.type === 'true-false' ? '是非題' : '簡答題'}
+              </span>
+              <span className="text-gray-400 text-xs">▼</span>
+            </button>
+            <AnimatePresence>
+              {isTypeOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-xl z-20 overflow-hidden"
+                >
+                  {[
+                    { value: 'mixed', label: '混合題型' },
+                    { value: 'multiple-choice', label: '選擇題' },
+                    { value: 'true-false', label: '是非題' },
+                    { value: 'short-answer', label: '簡答題' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setQuizConfig({ ...quizConfig, type: option.value });
+                        setIsTypeOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${quizConfig.type === option.value ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'}`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <div>
+          <div className="relative" ref={scopeRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1">出題範圍</label>
-            <select
-              className="w-full rounded-xl border-gray-300 bg-white/80"
-              value={quizConfig.allowExternal ? 'true' : 'false'}
-              onChange={(e) => setQuizConfig({ ...quizConfig, allowExternal: e.target.value === 'true' })}
+            <button
+              type="button"
+              onClick={() => setIsScopeOpen(!isScopeOpen)}
+              className="w-full rounded-xl border border-gray-300 bg-white/80 px-4 py-2 text-sm text-gray-700 flex items-center justify-between hover:border-gray-400 transition-colors"
             >
-              <option value="false">僅限講義內容</option>
-              <option value="true">允許聯網補充 (AI 知識庫)</option>
-            </select>
+              <span>{quizConfig.allowExternal ? '允許聯網補充 (AI 知識庫)' : '僅限講義內容'}</span>
+              <span className="text-gray-400 text-xs">▼</span>
+            </button>
+            <AnimatePresence>
+              {isScopeOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-xl shadow-xl z-20 overflow-hidden"
+                >
+                  {[
+                    { value: false, label: '僅限講義內容' },
+                    { value: true, label: '允許聯網補充 (AI 知識庫)' }
+                  ].map((option) => (
+                    <button
+                      key={String(option.value)}
+                      type="button"
+                      onClick={() => {
+                        setQuizConfig({ ...quizConfig, allowExternal: option.value });
+                        setIsScopeOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${quizConfig.allowExternal === option.value ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-700'}`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
         <div className="flex gap-3 pt-2">

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTextToSpeech } from '../../hooks/useTextToSpeech';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SpeakerNotesPanelProps {
     notes: string;
@@ -34,6 +35,21 @@ export default function SpeakerNotesPanel({
 }: SpeakerNotesPanelProps) {
     const [localNotes, setLocalNotes] = useState(notes);
     const { speak, pause, resume, stop, isSpeaking, isPaused, voices, selectedVoice, selectVoice, supported } = useTextToSpeech();
+    const [isVoiceOpen, setIsVoiceOpen] = useState(false);
+    const voiceRef = useRef<HTMLDivElement>(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (voiceRef.current && !voiceRef.current.contains(event.target as Node)) {
+                setIsVoiceOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Sync local state when prop changes (e.g., slide navigation)
     useEffect(() => {
@@ -97,18 +113,42 @@ export default function SpeakerNotesPanel({
                         <StopIcon />
                     </button>
 
-                    <div className="flex-1 min-w-0 ml-2">
-                        <select
-                            value={selectedVoice?.name || ''}
-                            onChange={(e) => selectVoice(e.target.value)}
-                            className="w-full bg-gray-900 text-xs text-gray-400 border border-gray-700 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+                    <div className="flex-1 min-w-0 ml-2 relative" ref={voiceRef}>
+                        <button
+                            type="button"
+                            onClick={() => setIsVoiceOpen(!isVoiceOpen)}
+                            className="w-full bg-gray-900 text-xs text-gray-300 border border-gray-700 rounded px-2 py-1 focus:outline-none focus:border-blue-500 text-left flex items-center justify-between hover:border-gray-600 transition-colors"
                         >
-                            {voices.map((voice) => (
-                                <option key={voice.name} value={voice.name}>
-                                    {voice.name.replace('Microsoft', '').replace('Google', '').trim()}
-                                </option>
-                            ))}
-                        </select>
+                            <span className="truncate">
+                                {selectedVoice?.name.replace('Microsoft', '').replace('Google', '').trim() || 'Select Voice'}
+                            </span>
+                            <span className="text-gray-500 text-xs ml-1">▼</span>
+                        </button>
+                        <AnimatePresence>
+                            {isVoiceOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden max-h-48 overflow-y-auto"
+                                >
+                                    {voices.map((voice) => (
+                                        <button
+                                            key={voice.name}
+                                            type="button"
+                                            onClick={() => {
+                                                selectVoice(voice.name);
+                                                setIsVoiceOpen(false);
+                                            }}
+                                            className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-700 transition-colors ${selectedVoice?.name === voice.name ? 'bg-blue-900/50 text-blue-400 font-medium' : 'text-gray-300'}`}
+                                        >
+                                            {voice.name.replace('Microsoft', '').replace('Google', '').trim()}
+                                        </button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
             )}
