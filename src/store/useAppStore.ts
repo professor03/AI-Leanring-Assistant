@@ -33,6 +33,10 @@ interface AppState {
   setPetMood: (mood: 'idle' | 'thinking' | 'happy' | 'confused' | 'listening') => void;
   setPetMessage: (message: string | null | undefined) => void;
 
+  // User Mood
+  mood: string;
+  setMood: (mood: string) => void;
+
   // Symbiotic Core
   petHealth: number; // 0-100
   petHunger: number; // 0-100
@@ -127,6 +131,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   setPetMood: (mood) => set({ petMood: mood }),
   petMessage: null,
   setPetMessage: (message) => set({ petMessage: message || null }),
+
+  // User Mood
+  mood: loadFromStorage('ai-student-mood', '平靜'),
+  setMood: (mood) => {
+    set({ mood });
+    saveToStorage('ai-student-mood', mood);
+  },
 
   // Symbiotic Core
   petHealth: loadFromStorage('ai-student-petHealth', 100),

@@ -17,21 +17,22 @@ export const generateNotes = async (text: string, courseName: string): Promise<L
     IMPORTANT: Output MUST be in Traditional Chinese (Taiwan) / 繁體中文(台灣).
     
     CRITICAL FORMATTING RULES:
-    - Use **bold** ONLY for the most important key terms and concepts (use sparingly, max 2-3 per paragraph)
-    - Use plain text for normal content
+    - DO NOT use any Markdown syntax (no **, *, _, \`, #, etc.)
+    - Use PLAIN TEXT only for all content
+    - Use "quoted text" for emphasis instead of **bold**
     - Use line breaks to separate paragraphs (use \\n\\n for double line breaks)
     - For lists, use numbered format (1. 2. 3.) or bullet points (- item)
-    - Keep formatting minimal and clean
-    - DO NOT make titles or common words bold
+    - Keep formatting minimal, clean, and natural like human writing
+    - Write like you're explaining to a friend, not writing documentation
     
     Return the response in valid JSON format with the following structure:
     {
-      "summary": "A concise summary. Use **bold** ONLY for critical concepts. Use \\n\\n for paragraph breaks.",
+      "summary": "A concise summary in plain text. Use quotes for important concepts. Use \\n\\n for paragraph breaks.",
       "sections": [
         {
           "id": "section-1",
           "title": "Main Topic 1",
-          "content": "Detailed explanation. Use **bold** only for KEY TERMS that students must remember. Use \\n\\n to separate paragraphs."
+          "content": "Detailed explanation in plain text. Use quotes for key terms. Use \\n\\n to separate paragraphs."
         }
       ],
       "terms": [

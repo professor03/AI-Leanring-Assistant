@@ -7,7 +7,6 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { STUDENT_TASK_OPTIONS, REVIEW_TYPE_META } from '../../lib/constants';
 import { toISODate } from '../../lib/format';
-import TaskQuadrant from './TaskQuadrant';
 
 interface TodayTasksProps {
   tasks: ReviewTask[];
@@ -36,8 +35,6 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask }: TodayTasksProps) => {
     title: '',
     dueDate: '',
     type: STUDENT_TASK_OPTIONS[0].value,
-    focus: 60,
-    urgency: 50,
   });
 
   const todayISO = toISODate(new Date());
@@ -51,11 +48,11 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask }: TodayTasksProps) => {
     if (!form.title || !form.dueDate) return;
     onAddTask?.({
       title: form.title,
-      type: form.type,
+      type: form.type as StudentTaskType,
       dueDate: form.dueDate,
-      vector: { focus: form.focus, urgency: form.urgency },
+      vector: { focus: 50, urgency: 50 }, // Default values
     });
-    setForm({ title: '', dueDate: '', type: STUDENT_TASK_OPTIONS[0].value, focus: 60, urgency: 50 });
+    setForm({ title: '', dueDate: '', type: STUDENT_TASK_OPTIONS[0].value });
   };
 
   return (
@@ -99,30 +96,7 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask }: TodayTasksProps) => {
               </select>
             </label>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm font-medium text-text-dark">
-              重要程度（X 軸） {form.focus}/100
-              <input
-                type="range"
-                min={10}
-                max={100}
-                step={5}
-                value={form.focus}
-                onChange={(event) => setForm((prev) => ({ ...prev, focus: Number(event.target.value) }))}
-              />
-            </label>
-            <label className="flex flex-col gap-2 text-sm font-medium text-text-dark">
-              緊急程度（Y 軸） {form.urgency}/100
-              <input
-                type="range"
-                min={10}
-                max={100}
-                step={5}
-                value={form.urgency}
-                onChange={(event) => setForm((prev) => ({ ...prev, urgency: Number(event.target.value) }))}
-              />
-            </label>
-          </div>
+
           <div className="text-xs text-gray-500">
             AI 會為學習型任務自動安排 D+3 / D+7 / D+14 的複習節奏。
           </div>
@@ -175,9 +149,6 @@ const TodayTasks = ({ tasks, onAddTask, onDeleteTask }: TodayTasksProps) => {
         {todaysTasks.length === 0 && (
           <p className="text-sm text-gray-500">今天尚未安排任務，先新增一項吧！</p>
         )}
-      </div>
-      <div className="mt-6">
-        <TaskQuadrant tasks={todaysTasks} />
       </div>
     </Card >
   );

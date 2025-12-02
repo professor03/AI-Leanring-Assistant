@@ -4,6 +4,7 @@ import { useAppStore } from '../../store/useAppStore';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from '../search/GlobalSearch';
+import WellnessSidebar from './WellnessSidebar';
 
 const TopNav = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const TopNav = () => {
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [isWellnessOpen, setIsWellnessOpen] = useState(false);
   const appMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +55,8 @@ const TopNav = () => {
 
   return (
     <>
+      <WellnessSidebar isOpen={isWellnessOpen} onClose={() => setIsWellnessOpen(false)} />
+
       <header className={clsx(
         "fixed top-0 left-0 z-50 w-full border-b border-white/40 bg-white/80 backdrop-blur-2xl shadow-sm transition-all duration-300 ease-in-out",
         isChatOpen ? "pr-0 md:pr-96" : ""
@@ -73,7 +77,7 @@ const TopNav = () => {
                 </svg>
               </button>
 
-              {/* Desktop App Dropdown */}
+              {/* App Dropdown (Desktop & Mobile) */}
               <AnimatePresence>
                 {isAppMenuOpen && (
                   <motion.div
@@ -81,7 +85,7 @@ const TopNav = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="hidden md:block absolute top-12 left-0 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50"
+                    className="absolute top-12 left-0 w-80 md:w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50"
                   >
                     <div className="grid grid-cols-3 gap-2">
                       {apps.map((app) => (
@@ -105,6 +109,15 @@ const TopNav = () => {
               </AnimatePresence>
             </div>
 
+            {/* Wellness Toggle */}
+            <button
+              onClick={() => setIsWellnessOpen(true)}
+              className="p-2 rounded-lg hover:bg-green-50 text-green-600 transition-colors"
+              title="療育中心"
+            >
+              <span className="text-xl">🌿</span>
+            </button>
+
             {/* Logo */}
             <div
               onClick={handleLogoClick}
@@ -122,7 +135,6 @@ const TopNav = () => {
 
           {/* Right Section: User & Mobile Menu */}
           <div className="flex items-center gap-3" ref={mobileMenuRef}>
-            {/* ... (keep existing right section content) ... */}
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-2">
               <button
@@ -194,67 +206,47 @@ const TopNav = () => {
                       <span className="text-lg">⚙️</span>
                       重置資料
                     </button>
+
+                    <div className="h-px bg-gray-100 my-1" />
+
+                    <div className="p-2">
+                      <p className="text-xs font-bold text-gray-500 mb-2 px-1">應用程式</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {apps.map((app) => (
+                          <Link
+                            key={app.name}
+                            to={app.path}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex flex-col items-center justify-center p-2 rounded-xl hover:bg-gray-50 transition-colors"
+                          >
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg mb-1 ${app.color}`}>
+                              {app.icon}
+                            </div>
+                            <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">
+                              {app.name}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
-
-        {/* Mobile Search Bar - New Row */}
-        <div className="md:hidden px-4 pb-3 w-full">
-          <GlobalSearch />
-        </div>
       </header>
-
-      {/* Mobile Full-Screen App Menu */}
-      <AnimatePresence>
-        {isAppMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="md:hidden fixed inset-0 z-[60] bg-slate-900/95 backdrop-blur-sm p-6 flex flex-col"
-          >
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-white">應用程式</h2>
-              <button
-                onClick={() => setIsAppMenuOpen(false)}
-                className="p-2 bg-white/10 rounded-full text-white"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {apps.map((app) => (
-                <Link
-                  key={app.name}
-                  to={app.path}
-                  onClick={() => setIsAppMenuOpen(false)}
-                  className="flex flex-col items-center justify-center p-6 bg-white/5 rounded-2xl border border-white/10 active:scale-95 transition-transform"
-                >
-                  <div className="text-4xl mb-3">{app.icon}</div>
-                  <span className="text-sm font-medium text-white text-center leading-tight">
-                    {app.name}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Reset Confirmation Modal */}
       <AnimatePresence>
         {isResetConfirmOpen && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"
-            >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm"
+          >
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-2xl mb-4">
                   ⚠️
@@ -278,8 +270,8 @@ const TopNav = () => {
                   </button>
                 </div>
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>

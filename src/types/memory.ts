@@ -54,3 +54,33 @@ export interface StockStats {
     topPerformer: KnowledgeStock | null;
     monthlyReturn: number;         // Sum of all monthlyDividend
 }
+
+export interface QuizResult {
+    id: string;
+    date: number;
+    score: number; // Percentage 0-100
+    totalQuestions: number;
+    correctCount: number;
+    wrongAnswers: { atomId: string; userAnswer: string; correctAnswer: string }[];
+    type: 'review' | 'exam' | 'quiz';
+}
+
+export interface DailyMission {
+    id: string;
+    type: 'review_count' | 'quiz_score' | 'new_atoms';
+    target: number;
+    progress: number;
+    completed: boolean;
+    rewardXP: number;
+    date: string; // YYYY-MM-DD for daily reset
+    description: string;
+    icon: string;
+}
+
+export interface LearningSession {
+    id: string;
+    date: number;
+    durationMinutes: number;
+    type: 'review' | 'quiz' | 'study';
+    xpGained: number;
+}

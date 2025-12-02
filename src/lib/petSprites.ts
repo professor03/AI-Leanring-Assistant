@@ -31,6 +31,7 @@ const earShapes = {
   otter: `<path d="M25 28 C10 20, 10 60, 30 46" fill="#a78bfa"/><path d="M71 28 C86 20, 86 60, 66 46" fill="#a78bfa"/>`,
   alpaca: `<path d="M28 24 Q26 8 38 14" stroke="#fde68a" stroke-width="8" stroke-linecap="round"/><path d="M68 24 Q70 8 58 14" stroke="#fde68a" stroke-width="8" stroke-linecap="round"/>`,
   capybara: `<path d="M24 32 Q18 12 34 18" stroke="#d4a375" stroke-width="10" stroke-linecap="round"/><path d="M72 32 Q78 12 62 18" stroke="#d4a375" stroke-width="10" stroke-linecap="round"/>`,
+  rabbit: `<ellipse cx="28" cy="16" rx="6" ry="16" fill="#fbcfe8"/><ellipse cx="68" cy="16" rx="6" ry="16" fill="#fbcfe8"/>`,
 };
 
 const createPetFrames = (body: string, accentKey: keyof typeof earShapes) => ({
@@ -60,4 +61,5 @@ export const PET_SPRITES: Record<PetType, Record<PetAction, string[]>> = {
   otter: createPetFrames('#c4b5fd', 'otter'),
   alpaca: createPetFrames('#fef3c7', 'alpaca'),
   capybara: createPetFrames('#e0b48a', 'capybara'),
+  rabbit: createPetFrames('#fff1f2', 'rabbit'),
 };

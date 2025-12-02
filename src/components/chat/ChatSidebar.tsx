@@ -440,6 +440,29 @@ Knowledge Galaxy 是一個 3D 視覺化的「知識網絡」，它就像您大�
     // Draggable Logic removed as it is not used in the render
 
 
+    // Swipe to close logic
+    const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStartX(e.touches[0].clientX);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (touchStartX === null) return;
+        const currentX = e.touches[0].clientX;
+        const deltaX = currentX - touchStartX;
+
+        // If swiping right (positive delta) > 100px, close sidebar
+        if (deltaX > 100) {
+            onToggle();
+            setTouchStartX(null); // Reset to prevent multiple triggers
+        }
+    };
+
+    const handleTouchEnd = () => {
+        setTouchStartX(null);
+    };
+
     return (
         <>
             {/* Desktop Floating Button (Left Side) */}
@@ -452,6 +475,9 @@ Knowledge Galaxy 是一個 3D 視覺化的「知識網絡」，它就像您大�
 
             {/* Sidebar */}
             <div
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 className={`fixed right-0 top-0 z-50 h-full w-full md:w-96 transform bg-white/95 backdrop-blur-xl shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'
                     }`}
             >

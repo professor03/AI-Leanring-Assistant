@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { KnowledgeAtom } from '../../types/memory';
+import { useMemoryStore } from '../../store/useMemoryStore';
 
 interface ReviewCardModalProps {
     atoms: KnowledgeAtom[];
@@ -16,6 +17,7 @@ const RATING_OPTIONS = [
 ];
 
 export default function ReviewCardModal({ atoms, onReviewComplete, onClose }: ReviewCardModalProps) {
+    const { updateMissionProgress } = useMemoryStore();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
     const [showResult, setShowResult] = useState(false);
@@ -43,6 +45,7 @@ export default function ReviewCardModal({ atoms, onReviewComplete, onClose }: Re
                 setShowResult(false);
             } else {
                 // All done
+                updateMissionProgress('review_count', atoms.length);
                 onClose();
             }
         }, 600);
@@ -64,7 +67,10 @@ export default function ReviewCardModal({ atoms, onReviewComplete, onClose }: Re
                         </span>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={() => {
+                            updateMissionProgress('review_count', atoms.length);
+                            onClose();
+                        }}
                         className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white"
                     >
                         ✕ 結束複習

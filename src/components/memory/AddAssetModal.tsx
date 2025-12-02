@@ -112,40 +112,47 @@ export default function AddAssetModal({ stockId, stockName, onClose }: AddAssetM
             const noteContent = `${sourceNote.summary}\n\n${sourceNote.sections.map(s => `${s.title}\n${s.content}`).join('\n\n')}`;
             const difficultyDesc = getDifficultyPrompt(difficulty);
 
-            const prompt = `根據以下教材內容，生成 ${cardCount} 張 Anki 學習卡片。
+            // Add timestamp and random seed to ensure different generations
+            const timestamp = Date.now();
+            const randomSeed = Math.floor(Math.random() * 10000);
+
+            const prompt = `【批次 #${randomSeed}】根據以下教材內容，生成 ${cardCount} 張完全不同的 Anki 學習卡片。
 
 教材：${sourceNote.courseName || '課程筆記'}
 
 內容：
 ${noteContent}
 
-要求：
+重要指示：
+- 這是第 ${randomSeed} 批生成，請確保與之前的批次完全不同
+- 每次生成時，請選擇教材中不同的章節和角度
+- 優先選擇尚未被提取的知識點
 - 難度等級：${difficultyDesc}
 - 生成數量：${cardCount} 張
-- **每張卡片必須涵蓋不同的知識點，避免主題相似或重複**
-- 確保卡片之間有明顯差異，涵蓋教材的不同章節或概念
+- **每張卡片必須涵蓋完全不同的知識點，從不同章節或不同概念層面提取**
+- 確保卡片之間有明顯的主題差異
 - 每張卡片包含：
   * term: 關鍵術語、概念或問題（簡潔明確，10-20字）
-  * definition: **極度精簡的定義或解釋（嚴格限制在30字以內，但必須精準核心）**
+  * definition: **極度精簡的定義或解釋（嚴格限制在30字以內）**
 - definition 撰寫原則：
   * 只保留最核心的概念
   * 去除冗長的例子和解釋
   * 使用最精煉的語言
-  * 30字是硬性上限，20字更佳
+  * 30字是硬性上限
 - 請以 JSON 陣列格式回覆，格式如下：
 
 [
   {
-    "term": "術語1",
+    "term": "章節A的術語1",
     "definition": "精簡定義（≤30字）"
   },
   {
-    "term": "術語2（不同主題）",
+    "term": "章節B的術語2（完全不同主題）",
     "definition": "精簡定義（≤30字）"
   }
 ]
 
-請直接回覆 JSON 陣列，不要包含其他文字或 markdown 標記（如 \`\`\`)。`;
+請直接回覆 JSON 陣列，不要包含其他文字或 markdown 標記（如 \`\`\`）。`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
@@ -236,7 +243,7 @@ ${noteContent}
                 </div>
 
                 {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar pb-24 md:pb-6">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar pb-32 md:pb-6">
                     {!aiMode ? (
                         <form id="manual-form" onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">

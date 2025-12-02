@@ -58,37 +58,37 @@ function App() {
     const hungerReduction = 3;
     rewardPet(xpGain, hungerReduction);
   };
-
   return (
     <>
-      <AppLayout isChatOpen={isChatOpen}>
+      <AppLayout>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<PageTransition><Dashboard /></PageTransition>} />
             <Route path="/memory" element={<PageTransition><MemoryDashboard /></PageTransition>} />
-            <Route path="/galaxy" element={<PageTransition><KnowledgeGalaxy /></PageTransition>} />
             <Route path="/notes" element={<PageTransition><Notes /></PageTransition>} />
-            <Route path="/notes/:id" element={<PageTransition><Notes /></PageTransition>} />
-            <Route path="/quiz/:id" element={<PageTransition><Quiz /></PageTransition>} />
+            <Route path="/quiz" element={<PageTransition><Quiz /></PageTransition>} />
             <Route path="/review" element={<PageTransition><SpacedReview /></PageTransition>} />
+            <Route path="/galaxy" element={<PageTransition><KnowledgeGalaxy /></PageTransition>} />
             <Route path="/upload" element={<PageTransition><Upload /></PageTransition>} />
             <Route path="/study-plan" element={<PageTransition><StudyPlan /></PageTransition>} />
             <Route path="/vault" element={<PageTransition><Vault /></PageTransition>} />
             <Route path="/research" element={<PageTransition><Research /></PageTransition>} />
             <Route path="/presentation" element={<PageTransition><PresentationStudio /></PageTransition>} />
             <Route path="/presentation/studio" element={<PageTransition><PresentationStudio /></PageTransition>} />
-          </Routes>
-        </AnimatePresence>
-      </AppLayout>
+          </Routes >
+        </AnimatePresence >
+      </AppLayout >
       <ChatSidebar isOpen={isChatOpen} onToggle={() => setChatOpen(!isChatOpen)} />
 
-      {reviewModal.isOpen && (
-        <ReviewCardModal
-          atoms={reviewModal.atoms}
-          onReviewComplete={handleReviewComplete}
-          onClose={closeReviewModal}
-        />
-      )}
+      {
+        reviewModal.isOpen && (
+          <ReviewCardModal
+            atoms={reviewModal.atoms}
+            onReviewComplete={handleReviewComplete}
+            onClose={closeReviewModal}
+          />
+        )
+      }
     </>
   );
 }

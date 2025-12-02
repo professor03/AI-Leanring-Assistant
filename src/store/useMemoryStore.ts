@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { KnowledgeAtom, MemoryStats, KnowledgeStock } from '../types/memory';
+import type { KnowledgeAtom, MemoryStats, KnowledgeStock, QuizResult, DailyMission, LearningSession } from '../types/memory';
 
 interface MemoryState {
     atoms: KnowledgeAtom[];
     stocks: Record<string, KnowledgeStock>; // Stock ID -> Stock data
+    quizHistory: QuizResult[];
+    dailyMissions: DailyMission[];
+    learningSessions: LearningSession[];
 
     // Actions
     addAtom: (atom: Omit<KnowledgeAtom, 'id' | 'createdAt' | 'mastery' | 'streak' | 'easeFactor' | 'lastReview' | 'nextReview'>) => void;
@@ -18,6 +21,12 @@ interface MemoryState {
     recordDividend: (stockId: string, dividend: number) => void;
     getStocks: () => KnowledgeStock[];
 
+    // Phase 3 Actions
+    addQuizResult: (result: QuizResult) => void;
+    updateMissionProgress: (type: DailyMission['type'], amount: number) => void;
+    logSession: (session: LearningSession) => void;
+    checkDailyReset: () => void;
+
     // Debug/Dev
     resetMemory: () => void;
 }
@@ -27,6 +36,9 @@ export const useMemoryStore = create<MemoryState>()(
         (set, get) => ({
             atoms: [],
             stocks: {},
+            quizHistory: [],
+            dailyMissions: [],
+            learningSessions: [],
 
             addAtom: (atomData) => {
                 const newAtom: KnowledgeAtom = {
@@ -47,6 +59,9 @@ export const useMemoryStore = create<MemoryState>()(
                 set((state) => ({
                     atoms: [...state.atoms, newAtom]
                 }));
+
+                // Track mission
+                get().updateMissionProgress('new_atoms', 1);
             },
 
             updateAtom: (id, updates) => {
@@ -112,7 +127,64 @@ export const useMemoryStore = create<MemoryState>()(
                 return Object.values(get().stocks);
             },
 
-            resetMemory: () => set({ atoms: [], stocks: {} })
+            addQuizResult: (result) => {
+                set((state) => ({
+                    quizHistory: [result, ...state.quizHistory]
+                }));
+                // Check missions
+                if (result.score >= 80) {
+                    get().updateMissionProgress('quiz_score', 1);
+                }
+            },
+
+            updateMissionProgress: (type, amount) => {
+                set((state) => ({
+                    dailyMissions: state.dailyMissions.map(mission => {
+                        if (mission.type === type && !mission.completed) {
+                            const newProgress = Math.min(mission.progress + amount, mission.target);
+                            return {
+                                ...mission,
+                                progress: newProgress,
+                                completed: newProgress >= mission.target
+                            };
+                        }
+                        return mission;
+                    })
+                }));
+            },
+
+            logSession: (session) => {
+                set((state) => ({
+                    learningSessions: [session, ...state.learningSessions]
+                }));
+            },
+
+            checkDailyReset: () => {
+                const lastReset = localStorage.getItem('last_daily_reset');
+                const today = new Date().toDateString();
+
+                if (lastReset !== today) {
+                    // Reset daily missions
+                    set((state) => ({
+                        dailyMissions: state.dailyMissions.map(m => ({
+                            ...m,
+                            progress: 0,
+                            completed: false
+                        }))
+                    }));
+                    localStorage.setItem('last_daily_reset', today);
+                }
+            },
+
+            resetMemory: () => {
+                set({
+                    atoms: [],
+                    stocks: {},
+                    quizHistory: [],
+                    dailyMissions: [],
+                    learningSessions: []
+                });
+            }
         }),
         {
             name: 'ai-student-memory', // Unique key for localStorage

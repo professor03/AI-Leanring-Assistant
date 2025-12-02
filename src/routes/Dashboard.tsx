@@ -1,6 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import DailyCoaching from '../components/dashboard/DailyCoaching';
-import QuickActions from '../components/dashboard/QuickActions';
 import TodayTasks from '../components/dashboard/TodayTasks';
 import WeeklyOverview from '../components/dashboard/WeeklyOverview';
 import CalendarPanel from '../components/dashboard/CalendarPanel';
@@ -8,7 +7,6 @@ import { api } from '../lib/api';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useAppStore } from '../store/useAppStore';
 import type {
-  MoodState,
   PetType,
   ReviewTask,
   StudentTaskType,
@@ -17,22 +15,7 @@ import type {
 import { DEFAULT_POMODORO_MAP, STUDENT_TASK_OPTIONS } from '../lib/constants';
 import { toISODate } from '../lib/format';
 
-const MOOD_KEY = 'ai-learning-wellness';
 const PET_KEY = 'ai-learning-pet';
-
-const getStoredMood = (): MoodState => {
-  if (typeof window === 'undefined') {
-    return { mood: 3, focus: 3 };
-  }
-  const raw = window.localStorage.getItem(MOOD_KEY);
-  if (!raw) return { mood: 3, focus: 3 };
-  try {
-    const parsed = JSON.parse(raw) as MoodState;
-    return { mood: parsed.mood ?? 3, focus: parsed.focus ?? 3 };
-  } catch {
-    return { mood: 3, focus: 3 };
-  }
-};
 
 const getStoredPet = (): PetType => {
   if (typeof window === 'undefined') {
@@ -104,15 +87,26 @@ const buildSmartSchedule = (input: {
   ];
 };
 
+import { useMemoryStore } from '../store/useMemoryStore';
+import MissionCard from '../components/dashboard/MissionCard';
+import LearningAnalytics from '../components/dashboard/LearningAnalytics';
+
+
 const Dashboard = () => {
   const [tasks, setTasks] = useState<ReviewTask[]>([]);
-
   const [weeklyStats, setWeeklyStats] = useState({ completed: 0, pending: 0 });
-  const [mood, setMood] = useState<MoodState>(() => getStoredMood());
+  const [activeTab, setActiveTab] = useState<'daily' | 'analytics'>('daily');
+
   const pomodoro = usePomodoro();
   const selectedPet = useAppStore((state) => state.selectedPet);
   const setSelectedPet = useAppStore((state) => state.setSelectedPet);
   const studyPlan = useAppStore((state) => state.studyPlan);
+
+  const { dailyMissions, checkDailyReset } = useMemoryStore();
+
+  useEffect(() => {
+    checkDailyReset();
+  }, [checkDailyReset]);
 
   const handleAddTask = (input: {
     title: string;
@@ -140,16 +134,11 @@ const Dashboard = () => {
   useEffect(() => {
     api.getDashboard().then((data) => {
       setTasks(data.todayTasks);
-
       setWeeklyStats(data.weeklyStats);
     });
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(MOOD_KEY, JSON.stringify(mood));
-    }
-  }, [mood]);
+
 
   useEffect(() => {
     const stored = getStoredPet();
@@ -184,29 +173,60 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-
-      <div className="grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
-        <TodayTasks tasks={tasks} onAddTask={handleAddTask} onDeleteTask={handleDeleteTask} />
-        <DailyCoaching
-          pomodoro={pomodoro}
-          mood={mood}
-          onMoodChange={setMood}
-          selectedPet={selectedPet}
-          onSelectPet={setSelectedPet}
-        />
+      {/* Header & Tabs */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">探險基地</h1>
+        <div className="flex bg-gray-100 p-1 rounded-xl">
+          <button
+            onClick={() => setActiveTab('daily')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'daily' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Daily View
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'analytics' ? 'bg-white shadow-sm text-primary-600' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            Analytics
+          </button>
+        </div>
       </div>
-      <QuickActions />
 
+      {activeTab === 'daily' ? (
+        <>
+          {/* 1. Daily Missions (Top Priority) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {dailyMissions.map(mission => (
+              <MissionCard key={mission.id} mission={mission} />
+            ))}
+          </div>
 
-      {/* Weekly Progress */}
-      <WeeklyOverview completed={weeklyStats.completed} pending={weeklyStats.pending} />
+          {/* 2. Today Tasks & Coaching */}
+          <div className="grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+            <TodayTasks tasks={tasks} onAddTask={handleAddTask} onDeleteTask={handleDeleteTask} />
 
-      <CalendarPanel
-        events={calendarEvents}
-        pomodoroHistory={pomodoro.history}
-        todayCount={pomodoro.completedToday}
-        currentDate={pomodoro.currentDate}
-      />
+            <div className="space-y-6">
+              {/* Simplified Coaching / Encouragement */}
+              <DailyCoaching
+                pomodoro={pomodoro}
+              />
+
+              {/* Weekly Progress moved here */}
+              <WeeklyOverview completed={weeklyStats.completed} pending={weeklyStats.pending} />
+            </div>
+          </div>
+
+          {/* 3. Calendar */}
+          <CalendarPanel
+            events={calendarEvents}
+            pomodoroHistory={pomodoro.history}
+            todayCount={pomodoro.completedToday}
+            currentDate={pomodoro.currentDate}
+          />
+        </>
+      ) : (
+        <LearningAnalytics />
+      )}
     </div>
   );
 };

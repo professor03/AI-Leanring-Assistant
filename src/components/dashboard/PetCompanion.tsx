@@ -407,6 +407,20 @@ const PetCompanion = () => {
             點擊喚醒
           </div>
         )}
+
+        {/* Close Button (Mobile Active Mode Only) */}
+        {mode === 'active' && isMobile && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setPetActive(false);
+              setMode('docked');
+            }}
+            className="absolute -top -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-lg active:scale-95 transition-all"
+          >
+            ✕
+          </button>
+        )}
       </div>
     </div>
   );

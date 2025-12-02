@@ -1,8 +1,8 @@
 ﻿import { Link, useLocation } from 'react-router-dom';
 
 const tabs = [
-  { path: '/', label: 'Home' },
-  { path: '/review', label: 'Review' },
+  { path: '/', label: '探險基地', icon: '🏠' },
+  { path: '/review', label: '複習', icon: '📝' },
   { path: '/upload', label: 'Upload' },
 ];
 

@@ -42,7 +42,11 @@ export const api = {
     weeklyStats: { completed: number; pending: number };
   }> {
     const today = formatDate(new Date());
-    const todayTasks = mockReviewTasks.filter((task) => task.dueDate === today);
+    // Dynamically update mock tasks to match today's date for demo purposes
+    const todayTasks = mockReviewTasks.map(task => ({
+      ...task,
+      dueDate: today
+    }));
     return delay({
       todayTasks,
       coaching: mockCoachingMessage,
